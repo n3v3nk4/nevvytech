@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEVVY TECH · Ventas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a1628; color: #e2e8f0; }
+        .sidebar {
+            background: #0f1a2e;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            width: 220px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 20px 0;
+        }
+        .sidebar a {
+            display: block;
+            padding: 12px 20px;
+            color: #94a3b8;
+            transition: all 0.3s;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 10px;
+        }
+        .sidebar a:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .main-content { margin-left: 220px; padding: 24px; }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .tabla { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .tabla th { text-align: left; padding: 10px 12px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
+        .tabla td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .tag { padding: 2px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 500; }
+        .tag-pendiente { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .tag-completada { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .tag-entregada { background: rgba(148,163,184,0.15); color: #94a3b8; }
+        .btn-primary {
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-success:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(16,185,129,0.3); }
+        .logo-text { font-size: 22px; font-weight: 900; color: white; padding: 0 20px; margin-bottom: 20px; }
+        .logo-text span { color: #3b82f6; }
+        .input-dark {
+            background: #0f1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: white;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .input-dark:focus { border-color: #3b82f6; }
+        .input-dark::placeholder { color: #475569; }
+        select.input-dark { appearance: none; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo-text">NEVVY <span>TECH</span></div>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="ventas.html" class="active">🛒 Ventas</a>
+        <a href="clientes.html">👤 Clientes</a>
+        <a href="cotizaciones.html">📄 Cotizaciones</a>
+        <a href="login.html" onclick="cerrarSesion()" style="color:#f87171; margin-top: 20px;">🚪 Cerrar Sesión</a>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="main-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">🛒 Gestión de Ventas</h2>
+            <span class="text-sm text-slate-400" id="fechaHora"></span>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex gap-3 mb-6">
+            <button onclick="mostrarFormulario()" class="btn-success">➕ Nueva Venta</button>
+            <button onclick="exportarReporte()" class="btn-primary">📊 Exportar Reporte</button>
+        </div>
+
+        <!-- Formulario de nueva venta -->
+        <div id="formVenta" class="card hidden mb-6">
+            <h3 class="text-sm font-semibold text-white mb-4">📋 Nueva Venta</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Cliente *</label>
+                    <input type="text" id="clienteVenta" class="input-dark w-full" placeholder="Nombre del cliente" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Teléfono</label>
+                    <input type="text" id="telefonoVenta" class="input-dark w-full" placeholder="+56 9 1234 5678" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Producto/Servicio *</label>
+                    <input type="text" id="productoVenta" class="input-dark w-full" placeholder="Ej: Desarrollo de Software" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Monto $ *</label>
+                    <input type="number" id="montoVenta" class="input-dark w-full" placeholder="150000" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Estado</label>
+                    <select id="estadoVenta" class="input-dark w-full">
+                        <option value="pendiente">Pendiente</option>
+                        <option value="completada">Completada</option>
+                        <option value="entregada">Entregada</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Forma de pago</label>
+                    <select id="pagoVenta" class="input-dark w-full">
+                        <option value="efectivo">Efectivo</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="debito">Débito</option>
+                        <option value="credito">Crédito</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button onclick="guardarVenta()" class="btn-success">💾 Guardar Venta</button>
+                <button onclick="ocultarFormulario()" class="btn-primary" style="background:#64748b;">❌ Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Tabla de ventas -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-semibold text-white">📋 Listado de Ventas</h3>
+                <span class="text-xs text-slate-400" id="totalRegistros">0 registros</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="tabla" id="tablaVentas">
+                    <thead>
+                        <tr>
+                            <th>N° Orden</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTabla">
+                        <tr><td colspan="7" class="text-center text-slate-500 py-6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // VERIFICAR SESIÓN
+        // ============================================
+        function verificarSesion() {
+            if (localStorage.getItem('nevvy_session') !== 'true') {
+                window.location.href = 'login.html';
+            }
+        }
+        verificarSesion();
+
+        function cerrarSesion() {
+            localStorage.removeItem('nevvy_session');
+        }
+
+        // ============================================
+        // RELOJ
+        // ============================================
+        function actualizarReloj() {
+            const ahora = new Date();
+            document.getElementById('fechaHora').textContent = 
+                ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            setTimeout(actualizarReloj, 1000);
+        }
+        actualizarReloj();
+
+        // ============================================
+        // DATOS DE EJEMPLO
+        // ============================================
+        let ventas = [
+            { numero: 'ORD-2026-001', cliente: 'Juan Pérez', producto: 'Desarrollo de Software', total: 50000, estado: 'completada', fecha: '25/07/2026' },
+            { numero: 'ORD-2026-002', cliente: 'María González', producto: 'Sitio Web', total: 35000, estado: 'pendiente', fecha: '24/07/2026' },
+            { numero: 'ORD-2026-003', cliente: 'Carlos López', producto: 'Automatización', total: 80000, estado: 'entregada', fecha: '23/07/2026' },
+        ];
+
+        // ============================================
+        // MOSTRAR/OCULTAR FORMULARIO
+        // ============================================
+        function mostrarFormulario() {
+            document.getElementById('formVenta').classList.remove('hidden');
+        }
+
+        function ocultarFormulario() {
+            document.getElementById('formVenta').classList.add('hidden');
+            document.getElementById('clienteVenta').value = '';
+            document.getElementById('telefonoVenta').value = '';
+            document.getElementById('productoVenta').value = '';
+            document.getElementById('montoVenta').value = '';
+        }
+
+        // ============================================
+        // GUARDAR VENTA
+        // ============================================
+        function guardarVenta() {
+            const cliente = document.getElementById('clienteVenta').value.trim();
+            const producto = document.getElementById('productoVenta').value.trim();
+            const monto = parseFloat(document.getElementById('montoVenta').value);
+            const estado = document.getElementById('estadoVenta').value;
+            const pago = document.getElementById('pagoVenta').value;
+
+            if (!cliente || !producto || !monto) {
+                alert('❌ Completa los campos obligatorios: Cliente, Producto y Monto');
+                return;
+            }
+
+            const nuevaVenta = {
+                numero: `ORD-2026-${String(ventas.length + 1).padStart(3, '0')}`,
+                cliente: cliente,
+                producto: producto,
+                total: monto,
+                estado: estado,
+                fecha: new Date().toLocaleDateString('es-CL')
+            };
+
+            ventas.push(nuevaVenta);
+            cargarVentas();
+            ocultarFormulario();
+            alert('✅ Venta guardada correctamente');
+        }
+
+        // ============================================
+        // CARGAR TABLA DE VENTAS
+        // ============================================
+        function cargarVentas() {
+            const tbody = document.getElementById('cuerpoTabla');
+            const estadoClass = {
+                'pendiente': 'tag-pendiente',
+                'completada': 'tag-completada',
+                'entregada': 'tag-entregada'
+            };
+            const estadoTexto = {
+                'pendiente': 'Pendiente',
+                'completada': 'Completada',
+                'entregada': 'Entregada'
+            };
+
+            if (ventas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay ventas registradas</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = ventas.map((v, i) => `
+                <tr>
+                    <td><span class="text-xs font-mono text-white">${v.numero}</span></td>
+                    <td>${v.cliente}</td>
+                    <td>${v.producto}</td>
+                    <td><span class="text-green-400 font-medium">$${v.total.toLocaleString('es-CL')}</span></td>
+                    <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${estadoTexto[v.estado] || v.estado}</span></td>
+                    <td class="text-xs text-slate-400">${v.fecha}</td>
+                    <td>
+                        <button onclick="eliminarVenta(${i})" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('totalRegistros').textContent = `${ventas.length} registros`;
+        }
+
+        // ============================================
+        // ELIMINAR VENTA
+        // ============================================
+        function eliminarVenta(index) {
+            if (confirm('¿Eliminar esta venta?')) {
+                ventas.splice(index, 1);
+                cargarVentas();
+            }
+        }
+
+        // ============================================
+        // EXPORTAR REPORTE
+        // ============================================
+        function exportarReporte() {
+            let texto = 'REPORTE DE VENTAS\n';
+            texto += '='.repeat(50) + '\n';
+            texto += `Generado: ${new Date().toLocaleString('es-CL')}\n\n`;
+            texto += 'N° Orden | Cliente | Producto | Total | Estado | Fecha\n';
+            texto += '-'.repeat(60) + '\n';
+            
+            ventas.forEach(v => {
+                texto += `${v.numero} | ${v.cliente} | ${v.producto} | $${v.total} | ${v.estado} | ${v.fecha}\n`;
+            });
+            
+            texto += '\n' + '='.repeat(50) + '\n';
+            const total = ventas.reduce((sum, v) => sum + v.total, 0);
+            texto += `TOTAL INGRESOS: $${total.toLocaleString('es-CL')}\n`;
+            
+            // Descargar como .txt
+            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `reporte_ventas_${new Date().toISOString().slice(0,10)}.txt`;
+            link.click();
+        }
+
+        // ============================================
+        // INICIAR
+        // ============================================
+        cargarVentas();
+    </script>
+</body>
+</html>

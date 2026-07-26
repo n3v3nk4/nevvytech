@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEVVY TECH · Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a1628; color: #e2e8f0; }
+        .sidebar {
+            background: #0f1a2e;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            width: 220px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 20px 0;
+        }
+        .sidebar a {
+            display: block;
+            padding: 12px 20px;
+            color: #94a3b8;
+            transition: all 0.3s;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 10px;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+        .main-content { margin-left: 220px; padding: 24px; }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .stat-value { font-size: 28px; font-weight: 700; color: #60a5fa; }
+        .stat-value.green { color: #4ade80; }
+        .stat-value.yellow { color: #fbbf24; }
+        .stat-value.purple { color: #a78bfa; }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .tabla { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .tabla th { text-align: left; padding: 10px 12px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
+        .tabla td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .tag { padding: 2px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 500; }
+        .tag-pendiente { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .tag-completada { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .tag-entregada { background: rgba(148,163,184,0.15); color: #94a3b8; }
+        .tag-cancelada { background: rgba(248,113,113,0.15); color: #f87171; }
+        .logo-text { font-size: 22px; font-weight: 900; color: white; padding: 0 20px; margin-bottom: 20px; }
+        .logo-text span { color: #3b82f6; }
+        .btn-primary {
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-success:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(16,185,129,0.3); }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo-text">NEVVY <span>TECH</span></div>
+        <a href="dashboard.html" class="active">📊 Dashboard</a>
+        <a href="ventas.html">🛒 Ventas</a>
+        <a href="clientes.html">👤 Clientes</a>
+        <a href="cotizaciones.html">📄 Cotizaciones</a>
+        <a href="login.html" onclick="cerrarSesion()" style="color:#f87171; margin-top: 20px;">🚪 Cerrar Sesión</a>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="main-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">📊 Dashboard</h2>
+            <span class="text-sm text-slate-400" id="fechaHora"></span>
+        </div>
+
+        <!-- ESTADÍSTICAS -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card">
+                <p class="text-xs text-slate-400">Total Ventas</p>
+                <p class="stat-value green" id="totalVentas">0</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-xs text-slate-400">Clientes</p>
+                <p class="stat-value" id="totalClientes">0</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-xs text-slate-400">Cotizaciones</p>
+                <p class="stat-value yellow" id="totalCotizaciones">0</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-xs text-slate-400">Ingresos</p>
+                <p class="stat-value green" id="totalIngresos">$0</p>
+            </div>
+        </div>
+
+        <!-- ÚLTIMAS VENTAS -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-semibold text-white">📋 Últimas Ventas</h3>
+                <span class="text-xs text-slate-400" id="totalRegistros">0 registros</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="tabla" id="tablaVentas">
+                    <thead>
+                        <tr>
+                            <th>N° Orden</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTabla">
+                        <tr><td colspan="5" class="text-center text-slate-500 py-6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // VERIFICAR SESIÓN
+        // ============================================
+        function verificarSesion() {
+            const session = localStorage.getItem('nevvy_session');
+            if (session !== 'true') {
+                window.location.href = 'login.html';
+            }
+        }
+        verificarSesion();
+
+        // ============================================
+        // CERRAR SESIÓN
+        // ============================================
+        function cerrarSesion() {
+            localStorage.removeItem('nevvy_session');
+            localStorage.removeItem('nevvy_usuario');
+        }
+
+        // ============================================
+        // RELOJ
+        // ============================================
+        function actualizarReloj() {
+            const ahora = new Date();
+            document.getElementById('fechaHora').textContent = 
+                ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            setTimeout(actualizarReloj, 1000);
+        }
+        actualizarReloj();
+
+        // ============================================
+        // DATOS DE EJEMPLO (LOCAL)
+        // ============================================
+        const datosEjemplo = {
+            ventas: [
+                { numero: 'ORD-2026-001', cliente: 'Juan Pérez', total: 50000, estado: 'completada', fecha: '25/07/2026' },
+                { numero: 'ORD-2026-002', cliente: 'María González', total: 35000, estado: 'pendiente', fecha: '24/07/2026' },
+                { numero: 'ORD-2026-003', cliente: 'Carlos López', total: 80000, estado: 'entregada', fecha: '23/07/2026' },
+                { numero: 'ORD-2026-004', cliente: 'Ana Martínez', total: 120000, estado: 'completada', fecha: '22/07/2026' },
+            ],
+            clientes: [
+                { id: 1, nombre: 'Juan Pérez', telefono: '+56 9 1234 5678', email: 'juan@email.cl' },
+                { id: 2, nombre: 'María González', telefono: '+56 9 8765 4321', email: 'maria@email.cl' },
+                { id: 3, nombre: 'Carlos López', telefono: '+56 9 5555 6666', email: 'carlos@email.cl' },
+            ]
+        };
+
+        // ============================================
+        // CARGAR DASHBOARD
+        // ============================================
+        function cargarDashboard() {
+            // Estadísticas
+            document.getElementById('totalVentas').textContent = datosEjemplo.ventas.length;
+            document.getElementById('totalClientes').textContent = datosEjemplo.clientes.length;
+            document.getElementById('totalCotizaciones').textContent = '3';
+            
+            const totalIngresos = datosEjemplo.ventas.reduce((sum, v) => sum + v.total, 0);
+            document.getElementById('totalIngresos').textContent = `$${totalIngresos.toLocaleString('es-CL')}`;
+
+            // Tabla de ventas
+            const tbody = document.getElementById('cuerpoTabla');
+            const estadoClass = {
+                'pendiente': 'tag-pendiente',
+                'completada': 'tag-completada',
+                'entregada': 'tag-entregada',
+                'cancelada': 'tag-cancelada'
+            };
+            const estadoTexto = {
+                'pendiente': 'Pendiente',
+                'completada': 'Completada',
+                'entregada': 'Entregada',
+                'cancelada': 'Cancelada'
+            };
+
+            tbody.innerHTML = datosEjemplo.ventas.map(v => `
+                <tr>
+                    <td><span class="text-xs font-mono text-white">${v.numero}</span></td>
+                    <td>${v.cliente}</td>
+                    <td><span class="text-green-400 font-medium">$${v.total.toLocaleString('es-CL')}</span></td>
+                    <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${estadoTexto[v.estado] || v.estado}</span></td>
+                    <td class="text-xs text-slate-400">${v.fecha}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('totalRegistros').textContent = `${datosEjemplo.ventas.length} registros`;
+        }
+
+        // ============================================
+        // INICIAR
+        // ============================================
+        cargarDashboard();
+    </script>
+</body>
+</html>

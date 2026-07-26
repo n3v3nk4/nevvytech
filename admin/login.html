@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEVVY TECH · Panel de Administración</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a1628; }
+        .login-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 48px;
+            max-width: 420px;
+            width: 100%;
+        }
+        .input-dark {
+            background: #0f1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: white;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .input-dark:focus { border-color: #3b82f6; }
+        .btn-primary {
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            padding: 12px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+        .logo-text { font-size: 28px; font-weight: 900; color: white; }
+        .logo-text span { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="login-card">
+            <div class="text-center mb-8">
+                <h1 class="logo-text">NEVVY <span>TECH</span></h1>
+                <p class="text-slate-400 text-sm mt-2">Panel de Administración</p>
+            </div>
+            
+            <div id="mensajeError" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg mb-4"></div>
+            
+            <form id="formLogin" onsubmit="return iniciarSesion(event)">
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-400 mb-1">Usuario</label>
+                    <input type="text" id="usuario" class="input-dark" placeholder="admin" required />
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm text-slate-400 mb-1">Contraseña</label>
+                    <input type="password" id="password" class="input-dark" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="btn-primary">Ingresar</button>
+            </form>
+            
+            <p class="text-center text-slate-500 text-xs mt-4">
+                Acceso restringido · NEVVY TECH © 2026
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function iniciarSesion(event) {
+            event.preventDefault();
+            
+            const usuario = document.getElementById('usuario').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('mensajeError');
+            
+            // Credenciales (puedes cambiarlas)
+            if (usuario === 'admin' && password === 'nevvy2026') {
+                // Guardar sesión en localStorage
+                localStorage.setItem('nevvy_session', 'true');
+                localStorage.setItem('nevvy_usuario', usuario);
+                window.location.href = 'dashboard.html';
+            } else {
+                errorDiv.textContent = 'Usuario o contraseña incorrectos';
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+            }
+            
+            return false;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEVVY TECH · Soluciones Tecnológicas para tu Negocio</title>
+    <meta name="description" content="Desarrollo de software a medida, aplicaciones web y automatización en Illapel. Tecnología accesible para hacer crecer tu negocio." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* ============================================ */
+        /* BOTÓN FLOTANTE DE WHATSAPP */
+        /* ============================================ */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+            background: #25d366;
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            animation: pulse-whatsapp 2s ease-in-out infinite;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6);
+        }
+
+        .whatsapp-float svg {
+            width: 32px;
+            height: 32px;
+            fill: #fff;
+        }
+
+        @keyframes pulse-whatsapp {
+            0%, 100% { box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4); }
+            50% { box-shadow: 0 4px 40px rgba(37, 211, 102, 0.7); }
+        }
+
+        .whatsapp-float .tooltip {
+            position: absolute;
+            right: 70px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .whatsapp-float:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* ============================================ */
+        /* HERO - OCUPA TODA LA FRANJA */
+        /* ============================================ */
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero p {
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-actions {
+            justify-content: center;
+        }
+
+        .hero-stats {
+            justify-content: center;
+        }
+
+        .hero-visual {
+            display: none;
+        }
+
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(124, 58, 237, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        /* ============================================ */
+        /* SERVICIOS MEJORADOS */
+        /* ============================================ */
+        .servicios-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+        }
+
+        .servicio-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 36px 28px 28px;
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .servicio-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.06), rgba(59, 130, 246, 0.06));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .servicio-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(124, 58, 237, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .servicio-card:hover::before {
+            opacity: 1;
+        }
+
+        .servicio-card .card-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+            display: inline-block;
+            background: rgba(124, 58, 237, 0.1);
+            padding: 12px;
+            border-radius: 14px;
+            line-height: 1;
+        }
+
+        .servicio-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+
+        .servicio-card p {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .servicio-card .card-link {
+            color: #a855f7;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            background: rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            text-decoration: none;
+        }
+
+        .servicio-card .card-link:hover {
+            background: rgba(124, 58, 237, 0.2);
+            border-color: rgba(124, 58, 237, 0.3);
+            transform: translateX(4px);
+            color: #c084fc;
+        }
+
+        /* ============================================ */
+        /* BENEFICIOS MEJORADOS */
+        /* ============================================ */
+        .beneficios-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .beneficio-item {
+            text-align: center;
+            padding: 32px 24px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .beneficio-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(124, 58, 237, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .beneficio-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .beneficio-item h4 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .beneficio-item p {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ============================================ */
+        /* PROCESO MEJORADO */
+        /* ============================================ */
+        .proceso-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            text-align: center;
+            padding: 28px 20px;
+            flex: 1;
+            min-width: 140px;
+            max-width: 220px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(124, 58, 237, 0.1);
+        }
+
+        .step-number {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: #fff;
+            font-size: 20px;
+            font-weight: 800;
+            border-radius: 50%;
+            margin: 0 auto 14px;
+        }
+
+        .step h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .step p {
+            color: #94a3b8;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .step-line {
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            opacity: 0.3;
+            flex-shrink: 0;
+        }
+
+        /* ============================================ */
+        /* CTA FINAL MEJORADO */
+        /* ============================================ */
+        .cta-card {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(59, 130, 246, 0.08));
+            border: 1px solid rgba(124, 58, 237, 0.12);
+            border-radius: 28px;
+            padding: 64px 48px;
+            text-align: center;
+        }
+
+        .cta-card h2 {
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            letter-spacing: -0.5px;
+        }
+
+        .cta-card p {
+            color: #94a3b8;
+            font-size: 18px;
+            margin-bottom: 32px;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================ */
+        /* CONTACTO MEJORADO */
+        /* ============================================ */
+        .contacto-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 48px;
+            align-items: start;
+        }
+
+        .contacto-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 8px 0;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .info-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(124, 58, 237, 0.1);
+        }
+
+        .info-item span:first-child {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .info-item h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+        }
+
+        .info-item p {
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .info-item.social {
+            display: flex;
+            gap: 16px;
+            padding: 16px 20px;
+        }
+
+        .info-item.social .social-link {
+            color: #94a3b8;
+            transition: all 0.3s ease;
+        }
+
+        .info-item.social .social-link:hover {
+            color: #a855f7;
+            transform: translateY(-3px);
+        }
+
+        .contacto-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #7c3aed;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #475569;
+        }
+
+        /* ============================================ */
+        /* FAQ MEJORADO */
+        /* ============================================ */
+        .faq-list {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 20px 0;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            transition: color 0.3s ease;
+        }
+
+        .faq-question:hover {
+            color: #a855f7;
+        }
+
+        .faq-icon {
+            font-size: 22px;
+            transition: transform 0.3s ease;
+            color: #94a3b8;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            color: #94a3b8;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 300px;
+            padding-bottom: 18px;
+        }
+
+        /* ============================================ */
+        /* RESPONSIVE */
+        /* ============================================ */
+        @media (max-width: 1024px) {
+            .servicios-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .beneficios-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+            .hero h1 .gradient-text {
+                font-size: 34px;
+            }
+            .hero-stats {
+                flex-wrap: wrap;
+                gap: 16px;
+                justify-content: center;
+            }
+            .servicios-grid {
+                grid-template-columns: 1fr;
+            }
+            .beneficios-grid {
+                grid-template-columns: 1fr;
+            }
+            .proceso-steps {
+                flex-direction: column;
+            }
+            .step-line {
+                width: 2px;
+                height: 30px;
+            }
+            .step {
+                max-width: 100%;
+                width: 100%;
+            }
+            .contacto-grid {
+                grid-template-columns: 1fr;
+            }
+            .cta-card {
+                padding: 40px 24px;
+            }
+            .cta-card h2 {
+                font-size: 28px;
+            }
+            .whatsapp-float {
+                width: 50px;
+                height: 50px;
+                bottom: 20px;
+                right: 20px;
+            }
+            .whatsapp-float svg {
+                width: 26px;
+                height: 26px;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 26px;
+            }
+            .hero h1 .gradient-text {
+                font-size: 28px;
+            }
+            .hero p {
+                font-size: 16px;
+            }
+            .cta-card h2 {
+                font-size: 24px;
+            }
+            .whatsapp-float {
+                width: 44px;
+                height: 44px;
+                bottom: 16px;
+                right: 16px;
+            }
+            .whatsapp-float svg {
+                width: 22px;
+                height: 22px;
+            }
+            .servicio-card {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- BOTÓN FLOTANTE DE WHATSAPP -->
+    <!-- ============================================ -->
+    <a href="https://wa.me/56957002496?text=Hola%20NEVVY%20TECH%2C%20quiero%20cotizar%20un%20proyecto" 
+       class="whatsapp-float" 
+       target="_blank" 
+       aria-label="WhatsApp">
+        <span class="tooltip">¡Hablemos!</span>
+        <svg viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+    </a>
+
+    <!-- ============================================ -->
+    <!-- NAVBAR -->
+    <!-- ============================================ -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="logo.png" alt="NEVVY TECH" style="height: 32px; width: auto; margin-right: 8px;" />
+                <span>NEVVY</span><span>TECH</span>
+            </a>
+            <div class="nav-links">
+                <a href="#servicios">Servicios</a>
+                <a href="#beneficios">Beneficios</a>
+                <a href="#proceso">Proceso</a>
+                <a href="#faq">FAQ</a>
+                <a href="admin/login.html" class="admin-link">🔐 Admin</a>
+            </div>
+            <a href="https://wa.me/56957002496?text=Hola%20NEVVY%20TECH%2C%20quiero%20cotizar%20un%20proyecto" 
+               class="btn-primary btn-sm" 
+               target="_blank">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                WhatsApp
+            </a>
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ============================================ -->
+    <!-- HERO - SIN DESLIZA -->
+    <!-- ============================================ -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <div class="hero-tag">
+                        <span class="dot"></span>
+                        Tecnología con propósito
+                    </div>
+                    <h1>
+                        <span class="gradient-text">Tecnología</span> que transforma <br />tu negocio
+                    </h1>
+                    <p>
+                        En NEVVY TECH creemos que la tecnología debe ser <strong>accesible, clara y con resultados reales</strong>. 
+                        Ayudamos a emprendedores y empresas a digitalizar sus procesos, ahorrar tiempo y crecer.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="contacto.html" class="btn-primary btn-lg">
+                            Cotizar Proyecto
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </a>
+                        <a href="https://wa.me/56957002496?text=Hola%20NEVVY%20TECH%2C%20quiero%20cotizar%20un%20proyecto" 
+                           class="btn-secondary btn-lg" 
+                           target="_blank">
+                            💬 WhatsApp
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div>
+                            <span>📍</span>
+                            <span>Illapel, Chile</span>
+                        </div>
+                        <div>
+                            <span>⏱️</span>
+                            <span>Soporte 24/7</span>
+                        </div>
+                        <div>
+                            <span>💡</span>
+                            <span>Soluciones a medida</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SERVICIOS -->
+    <!-- ============================================ -->
+    <section class="servicios" id="servicios">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Servicios</span>
+                <h2>Soluciones <span class="gradient-text">a tu medida</span></h2>
+                <p>No vendemos código, vendemos soluciones que resuelven problemas reales.</p>
+            </div>
+            <div class="servicios-grid">
+                <!-- Servicio 1 -->
+                <div class="servicio-card">
+                    <div class="card-icon">💻</div>
+                    <h3>Desarrollo de Software</h3>
+                    <p>Sistemas a medida para gestionar tu negocio: inventario, ventas, clientes y más.</p>
+                    <a href="#" class="card-link" onclick="abrirWhatsApp('Desarrollo de Software'); return false;">Cotizar →</a>
+                </div>
+                <!-- Servicio 2 -->
+                <div class="servicio-card">
+                    <div class="card-icon">🌐</div>
+                    <h3>Sitios Web y Apps</h3>
+                    <p>Presencia digital profesional. Desde landing pages hasta tiendas online y plataformas complejas.</p>
+                    <a href="#" class="card-link" onclick="abrirWhatsApp('Sitio Web o App'); return false;">Cotizar →</a>
+                </div>
+                <!-- Servicio 3 -->
+                <div class="servicio-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>Automatización</h3>
+                    <p>Automatiza tareas repetitivas y libera tiempo para lo que realmente importa.</p>
+                    <a href="#" class="card-link" onclick="abrirWhatsApp('Automatización'); return false;">Cotizar →</a>
+                </div>
+                <!-- Servicio 4 -->
+                <div class="servicio-card">
+                    <div class="card-icon">🧠</div>
+                    <h3>Asesoría en IA</h3>
+                    <p>Te ayudo a entender cómo la Inteligencia Artificial puede mejorar tu negocio.</p>
+                    <a href="#" class="card-link" onclick="abrirWhatsApp('Asesoría en Inteligencia Artificial'); return false;">Cotizar →</a>
+                </div>
+                <!-- Servicio 5 -->
+                <div class="servicio-card">
+                    <div class="card-icon">🔗</div>
+                    <h3>Integraciones</h3>
+                    <p>Conectamos tus sistemas y herramientas para que trabajen juntos sin complicaciones.</p>
+                    <a href="#" class="card-link" onclick="abrirWhatsApp('Integración de Sistemas'); return false;">Cotizar →</a>
+                </div>
+                <!-- Servicio 6 -->
+                <div class="servicio-card">
+                    <div class="card-icon">📱</div>
+                    <h3>Marketing Digital</h3>
+                    <p>Estrategias para llegar a más clientes y hacer crecer tu negocio en redes y buscadores.</p>
+                    <a href="#" class="card-link" onclick="abrirWhatsApp('Marketing Digital'); return false;">Cotizar →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- BENEFICIOS -->
+    <!-- ============================================ -->
+    <section class="beneficios" id="beneficios">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Beneficios</span>
+                <h2>¿Por qué <span class="gradient-text">elegirnos</span>?</h2>
+                <p>Porque entendemos que cada negocio es único y merece una solución personalizada.</p>
+            </div>
+            <div class="beneficios-grid">
+                <div class="beneficio-item">
+                    <div class="beneficio-icon">🤝</div>
+                    <h4>Confianza</h4>
+                    <p>Somos transparentes en cada paso. Sin letra chica ni sorpresas.</p>
+                </div>
+                <div class="beneficio-item">
+                    <div class="beneficio-icon">⏱️</div>
+                    <h4>Ahorra tiempo</h4>
+                    <p>Automatizamos procesos manuales para que te concentres en crecer.</p>
+                </div>
+                <div class="beneficio-item">
+                    <div class="beneficio-icon">📍</div>
+                    <h4>Local</h4>
+                    <p>Basados en Illapel, entendemos las necesidades de la región.</p>
+                </div>
+                <div class="beneficio-item">
+                    <div class="beneficio-icon">💡</div>
+                    <h4>Innovación</h4>
+                    <p>Tecnología accesible para mantenerte por delante de tu competencia.</p>
+                </div>
+                <div class="beneficio-item">
+                    <div class="beneficio-icon">🔒</div>
+                    <h4>Seguridad</h4>
+                    <p>Datos protegidos con las mejores prácticas de la industria.</p>
+                </div>
+                <div class="beneficio-item">
+                    <div class="beneficio-icon">📈</div>
+                    <h4>Resultados</h4>
+                    <p>No entregamos código, entregamos soluciones que funcionan.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- PROCESO DE TRABAJO -->
+    <!-- ============================================ -->
+    <section class="proceso" id="proceso">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Metodología</span>
+                <h2>De la idea a la <span class="gradient-text">solución</span></h2>
+                <p>Un proceso claro y transparente para que sepas exactamente qué esperar.</p>
+            </div>
+            <div class="proceso-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Conversamos</h4>
+                    <p>Entendemos tu negocio, objetivos y desafíos. Sin compromiso.</p>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Diseñamos</h4>
+                    <p>Creamos una hoja de ruta y un presupuesto claro y detallado.</p>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>Construimos</h4>
+                    <p>Desarrollamos tu solución con entregas constantes y revisiones.</p>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>Entregamos</h4>
+                    <p>Implementamos, capacitamos y te acompañamos después del lanzamiento.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- CTA FINAL -->
+    <!-- ============================================ -->
+    <section class="cta-final">
+        <div class="container">
+            <div class="cta-card">
+                <h2>¿Listo para dar el <span class="gradient-text">siguiente paso</span>?</h2>
+                <p>Hablemos y veamos cómo podemos ayudarte a crecer.</p>
+                <div class="cta-actions">
+                    <a href="contacto.html" class="btn-primary btn-lg">
+                        Cotizar Proyecto
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </a>
+                    <a href="https://wa.me/56957002496?text=Hola%20NEVVY%20TECH%2C%20quiero%20cotizar%20un%20proyecto" 
+                       class="btn-secondary btn-lg" 
+                       target="_blank">
+                        💬 WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- FAQ -->
+    <!-- ============================================ -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">FAQ</span>
+                <h2>Preguntas <span class="gradient-text">frecuentes</span></h2>
+            </div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Cuánto cuesta un proyecto?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Cada proyecto es único. El precio depende de la complejidad y el tiempo requerido. Te entregamos un presupuesto detallado sin compromiso después de conocer tu necesidad.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Cuánto tiempo toma desarrollar un proyecto?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Depende de la complejidad. Un sitio web puede tomar 2-4 semanas, mientras que un sistema completo puede tomar 2-4 meses. Siempre definimos plazos claros antes de empezar.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Ofrecen mantenimiento después del lanzamiento?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Sí, ofrecemos planes de mantenimiento y soporte post-lanzamiento para asegurar que tu solución funcione siempre al 100%.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Necesito saber programación para trabajar con ustedes?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>¡Para nada! Nosotros nos encargamos de toda la parte técnica. Tú solo necesitas tener clara tu idea y nosotros la hacemos realidad.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- CONTACTO -->
+    <!-- ============================================ -->
+    <section class="contacto" id="contacto">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Contacto</span>
+                <h2>Hablemos de tu <span class="gradient-text">proyecto</span></h2>
+                <p>Cuéntanos tu idea y te ayudamos a hacerla realidad.</p>
+            </div>
+            <div class="contacto-grid">
+                <div class="contacto-info">
+                    <div class="info-item">
+                        <span>📞</span>
+                        <div>
+                            <h4>Teléfono</h4>
+                            <p>+56 9 5700 2496</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span>✉️</span>
+                        <div>
+                            <h4>Email</h4>
+                            <p>contacto@nevvytech.cl</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span>📍</span>
+                        <div>
+                            <h4>Ubicación</h4>
+                            <p>Illapel, Chile</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span>💬</span>
+                        <div>
+                            <h4>WhatsApp</h4>
+                            <p>
+                                <a href="https://wa.me/56957002496?text=Hola%20NEVVY%20TECH%2C%20quiero%20cotizar%20un%20proyecto" 
+                                   target="_blank" 
+                                   style="color: #25d366; font-weight: 600;">
+                                    +56 9 5700 2496
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="info-item social">
+                        <a href="https://www.instagram.com/nevvytech.cl" target="_blank" aria-label="Instagram" class="social-link">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.facebook.com/share/1Z7Dg2VgEB/" target="_blank" aria-label="Facebook" class="social-link">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <form class="contacto-form" action="https://formspree.io/f/xzdlovpq" method="POST">
+                    <input type="hidden" name="_subject" value="Nuevo contacto desde NEVVY TECH">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" name="nombre" placeholder="Tu nombre" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="_replyto" placeholder="tu@email.cl" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" name="telefono" placeholder="+56 9 1234 5678" />
+                    </div>
+                    <div class="form-group">
+                        <label>Mensaje *</label>
+                        <textarea name="mensaje" rows="4" placeholder="Cuéntanos tu proyecto..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary btn-lg">
+                        Enviar Mensaje
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- FOOTER -->
+    <!-- ============================================ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <img src="logo.png" alt="NEVVY TECH" style="height: 28px; width: auto; margin-right: 6px;" />
+                        NEVVY<span>TECH</span>
+                    </a>
+                    <p>Transformamos negocios con tecnología accesible y soluciones a medida.</p>
+                    <div class="footer-social">
+                        <a href="https://www.instagram.com/nevvytech.cl" target="_blank" aria-label="Instagram" class="social-link">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.facebook.com/share/1Z7Dg2VgEB/" target="_blank" aria-label="Facebook" class="social-link">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </a>
+                        <a href="https://wa.me/56957002496?text=Hola%20NEVVY%20TECH%2C%20quiero%20cotizar%20un%20proyecto" 
+                           target="_blank" 
+                           aria-label="WhatsApp" 
+                           class="social-link" 
+                           style="color: #25d366;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Navegación</h4>
+                    <a href="#servicios">Servicios</a>
+                    <a href="#beneficios">Beneficios</a>
+                    <a href="#proceso">Proceso</a>
+                    <a href="#contacto">Contacto</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Servicios</h4>
+                    <a href="contacto.html">Desarrollo de Software</a>
+                    <a href="contacto.html">Sitios Web</a>
+                    <a href="contacto.html">Automatización</a>
+                    <a href="contacto.html">Marketing Digital</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Contacto</h4>
+                    <a href="tel:+56957002496">+56 9 5700 2496</a>
+                    <a href="mailto:contacto@nevvytech.cl">contacto@nevvytech.cl</a>
+                    <a href="https://wa.me/56957002496?text=Hola%20NEVVY%20TECH%2C%20quiero%20cotizar%20un%20proyecto" 
+                       target="_blank" 
+                       style="color: #25d366; font-weight: 600;">
+                        💬 WhatsApp
+                    </a>
+                    <a href="#">Illapel, Chile</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 NEVVY TECH · Todos los derechos reservados</p>
+                <p>RUT: 78.430.891-K · Illapel, Chile</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

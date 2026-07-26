@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEVVY TECH · Clientes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a1628; color: #e2e8f0; }
+        .sidebar {
+            background: #0f1a2e;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            width: 220px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 20px 0;
+        }
+        .sidebar a {
+            display: block;
+            padding: 12px 20px;
+            color: #94a3b8;
+            transition: all 0.3s;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 10px;
+        }
+        .sidebar a:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .main-content { margin-left: 220px; padding: 24px; }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .tabla { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .tabla th { text-align: left; padding: 10px 12px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
+        .tabla td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-success:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(16,185,129,0.3); }
+        .btn-primary {
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
+        .logo-text { font-size: 22px; font-weight: 900; color: white; padding: 0 20px; margin-bottom: 20px; }
+        .logo-text span { color: #3b82f6; }
+        .input-dark {
+            background: #0f1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: white;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .input-dark:focus { border-color: #3b82f6; }
+        .input-dark::placeholder { color: #475569; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo-text">NEVVY <span>TECH</span></div>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="ventas.html">🛒 Ventas</a>
+        <a href="clientes.html" class="active">👤 Clientes</a>
+        <a href="cotizaciones.html">📄 Cotizaciones</a>
+        <a href="login.html" onclick="cerrarSesion()" style="color:#f87171; margin-top: 20px;">🚪 Cerrar Sesión</a>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="main-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">👤 Gestión de Clientes</h2>
+            <span class="text-sm text-slate-400" id="fechaHora"></span>
+        </div>
+
+        <!-- Botones -->
+        <div class="flex gap-3 mb-6">
+            <button onclick="mostrarFormulario()" class="btn-success">➕ Nuevo Cliente</button>
+        </div>
+
+        <!-- Formulario -->
+        <div id="formCliente" class="card hidden mb-6">
+            <h3 class="text-sm font-semibold text-white mb-4">📋 Nuevo Cliente</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Nombre *</label>
+                    <input type="text" id="nombreCliente" class="input-dark w-full" placeholder="Nombre completo" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Teléfono *</label>
+                    <input type="text" id="telefonoCliente" class="input-dark w-full" placeholder="+56 9 1234 5678" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Email</label>
+                    <input type="email" id="emailCliente" class="input-dark w-full" placeholder="correo@ejemplo.cl" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">RUT</label>
+                    <input type="text" id="rutCliente" class="input-dark w-full" placeholder="12.345.678-9" />
+                </div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button onclick="guardarCliente()" class="btn-success">💾 Guardar Cliente</button>
+                <button onclick="ocultarFormulario()" class="btn-primary" style="background:#64748b;">❌ Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-semibold text-white">📋 Listado de Clientes</h3>
+                <span class="text-xs text-slate-400" id="totalRegistros">0 registros</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="tabla" id="tablaClientes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>RUT</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTabla">
+                        <tr><td colspan="6" class="text-center text-slate-500 py-6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // VERIFICAR SESIÓN
+        // ============================================
+        function verificarSesion() {
+            if (localStorage.getItem('nevvy_session') !== 'true') {
+                window.location.href = 'login.html';
+            }
+        }
+        verificarSesion();
+
+        function cerrarSesion() {
+            localStorage.removeItem('nevvy_session');
+        }
+
+        // ============================================
+        // RELOJ
+        // ============================================
+        function actualizarReloj() {
+            const ahora = new Date();
+            document.getElementById('fechaHora').textContent = 
+                ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            setTimeout(actualizarReloj, 1000);
+        }
+        actualizarReloj();
+
+        // ============================================
+        // DATOS DE EJEMPLO
+        // ============================================
+        let clientes = [
+            { id: 1, nombre: 'Juan Pérez', telefono: '+56 9 1234 5678', email: 'juan@email.cl', rut: '12.345.678-9' },
+            { id: 2, nombre: 'María González', telefono: '+56 9 8765 4321', email: 'maria@email.cl', rut: '98.765.432-1' },
+        ];
+
+        let siguienteId = 3;
+
+        // ============================================
+        // MOSTRAR/OCULTAR FORMULARIO
+        // ============================================
+        function mostrarFormulario() {
+            document.getElementById('formCliente').classList.remove('hidden');
+        }
+
+        function ocultarFormulario() {
+            document.getElementById('formCliente').classList.add('hidden');
+            document.getElementById('nombreCliente').value = '';
+            document.getElementById('telefonoCliente').value = '';
+            document.getElementById('emailCliente').value = '';
+            document.getElementById('rutCliente').value = '';
+        }
+
+        // ============================================
+        // GUARDAR CLIENTE
+        // ============================================
+        function guardarCliente() {
+            const nombre = document.getElementById('nombreCliente').value.trim();
+            const telefono = document.getElementById('telefonoCliente').value.trim();
+
+            if (!nombre || !telefono) {
+                alert('❌ Completa los campos obligatorios: Nombre y Teléfono');
+                return;
+            }
+
+            clientes.push({
+                id: siguienteId++,
+                nombre: nombre,
+                telefono: telefono,
+                email: document.getElementById('emailCliente').value.trim(),
+                rut: document.getElementById('rutCliente').value.trim()
+            });
+
+            cargarClientes();
+            ocultarFormulario();
+            alert('✅ Cliente guardado correctamente');
+        }
+
+        // ============================================
+        // CARGAR TABLA DE CLIENTES
+        // ============================================
+        function cargarClientes() {
+            const tbody = document.getElementById('cuerpoTabla');
+
+            if (clientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-slate-500 py-6">No hay clientes registrados</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = clientes.map(c => `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.nombre}</td>
+                    <td>${c.telefono}</td>
+                    <td>${c.email || '-'}</td>
+                    <td>${c.rut || '-'}</td>
+                    <td>
+                        <button onclick="eliminarCliente(${c.id})" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('totalRegistros').textContent = `${clientes.length} registros`;
+        }
+
+        // ============================================
+        // ELIMINAR CLIENTE
+        // ============================================
+        function eliminarCliente(id) {
+            if (confirm('¿Eliminar este cliente?')) {
+                clientes = clientes.filter(c => c.id !== id);
+                cargarClientes();
+            }
+        }
+
+        // ============================================
+        // INICIAR
+        // ============================================
+        cargarClientes();
+    </script>
+</body>
+</html>
