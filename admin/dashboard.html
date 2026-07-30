@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NEVVY TECH · Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -149,6 +150,13 @@
 
     <script>
         // ============================================
+        // CONFIGURACIÓN DE SUPABASE
+        // ============================================
+        const SUPABASE_URL = 'https://fjsbinbakqxgsjrleqgi.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============================================
         // VERIFICAR SESIÓN
         // ============================================
         function verificarSesion() {
@@ -179,60 +187,96 @@
         actualizarReloj();
 
         // ============================================
-        // DATOS DE EJEMPLO (LOCAL)
+        // CARGAR DASHBOARD DESDE SUPABASE
         // ============================================
-        const datosEjemplo = {
-            ventas: [
-                { numero: 'ORD-2026-001', cliente: 'Juan Pérez', total: 50000, estado: 'completada', fecha: '25/07/2026' },
-                { numero: 'ORD-2026-002', cliente: 'María González', total: 35000, estado: 'pendiente', fecha: '24/07/2026' },
-                { numero: 'ORD-2026-003', cliente: 'Carlos López', total: 80000, estado: 'entregada', fecha: '23/07/2026' },
-                { numero: 'ORD-2026-004', cliente: 'Ana Martínez', total: 120000, estado: 'completada', fecha: '22/07/2026' },
-            ],
-            clientes: [
-                { id: 1, nombre: 'Juan Pérez', telefono: '+56 9 1234 5678', email: 'juan@email.cl' },
-                { id: 2, nombre: 'María González', telefono: '+56 9 8765 4321', email: 'maria@email.cl' },
-                { id: 3, nombre: 'Carlos López', telefono: '+56 9 5555 6666', email: 'carlos@email.cl' },
-            ]
-        };
+        async function cargarDashboard() {
+            try {
+                // 1. Contar ventas
+                const { count: totalVentas, error: errorVentas } = await supabaseClient
+                    .from('ventas')
+                    .select('*', { count: 'exact', head: true });
+
+                if (errorVentas) throw new Error(errorVentas.message);
+
+                // 2. Contar clientes
+                const { count: totalClientes, error: errorClientes } = await supabaseClient
+                    .from('clientes')
+                    .select('*', { count: 'exact', head: true });
+
+                if (errorClientes) throw new Error(errorClientes.message);
+
+                // 3. Contar cotizaciones
+                const { count: totalCotizaciones, error: errorCotizaciones } = await supabaseClient
+                    .from('cotizaciones')
+                    .select('*', { count: 'exact', head: true });
+
+                if (errorCotizaciones) throw new Error(errorCotizaciones.message);
+
+                // 4. Calcular ingresos totales
+                const { data: ventasData, error: errorIngresos } = await supabaseClient
+                    .from('ventas')
+                    .select('monto');
+
+                if (errorIngresos) throw new Error(errorIngresos.message);
+
+                const totalIngresos = ventasData.reduce((sum, v) => sum + v.monto, 0);
+
+                // 5. Actualizar estadísticas
+                document.getElementById('totalVentas').textContent = totalVentas || 0;
+                document.getElementById('totalClientes').textContent = totalClientes || 0;
+                document.getElementById('totalCotizaciones').textContent = totalCotizaciones || 0;
+                document.getElementById('totalIngresos').textContent = `$${totalIngresos.toLocaleString('es-CL')}`;
+
+                // 6. Cargar últimas ventas
+                await cargarUltimasVentas();
+
+            } catch (error) {
+                console.error('Error al cargar dashboard:', error);
+                document.getElementById('cuerpoTabla').innerHTML = 
+                    '<tr><td colspan="5" class="text-center text-red-400 py-6">Error al cargar datos</td></tr>';
+            }
+        }
 
         // ============================================
-        // CARGAR DASHBOARD
+        // CARGAR ÚLTIMAS VENTAS
         // ============================================
-        function cargarDashboard() {
-            // Estadísticas
-            document.getElementById('totalVentas').textContent = datosEjemplo.ventas.length;
-            document.getElementById('totalClientes').textContent = datosEjemplo.clientes.length;
-            document.getElementById('totalCotizaciones').textContent = '3';
-            
-            const totalIngresos = datosEjemplo.ventas.reduce((sum, v) => sum + v.total, 0);
-            document.getElementById('totalIngresos').textContent = `$${totalIngresos.toLocaleString('es-CL')}`;
+        async function cargarUltimasVentas() {
+            const { data: ventas, error } = await supabaseClient
+                .from('ventas')
+                .select('*, clientes(nombre)')
+                .order('fecha', { ascending: false })
+                .limit(10);
 
-            // Tabla de ventas
+            if (error) {
+                throw new Error(error.message);
+            }
+
             const tbody = document.getElementById('cuerpoTabla');
+
+            if (!ventas || ventas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-slate-500 py-6">No hay ventas registradas</td></tr>';
+                document.getElementById('totalRegistros').textContent = '0 registros';
+                return;
+            }
+
             const estadoClass = {
-                'pendiente': 'tag-pendiente',
-                'completada': 'tag-completada',
-                'entregada': 'tag-entregada',
-                'cancelada': 'tag-cancelada'
-            };
-            const estadoTexto = {
-                'pendiente': 'Pendiente',
-                'completada': 'Completada',
-                'entregada': 'Entregada',
-                'cancelada': 'Cancelada'
+                'Pendiente': 'tag-pendiente',
+                'Completada': 'tag-completada',
+                'Entregada': 'tag-entregada',
+                'Cancelada': 'tag-cancelada'
             };
 
-            tbody.innerHTML = datosEjemplo.ventas.map(v => `
+            tbody.innerHTML = ventas.map(v => `
                 <tr>
-                    <td><span class="text-xs font-mono text-white">${v.numero}</span></td>
-                    <td>${v.cliente}</td>
-                    <td><span class="text-green-400 font-medium">$${v.total.toLocaleString('es-CL')}</span></td>
-                    <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${estadoTexto[v.estado] || v.estado}</span></td>
-                    <td class="text-xs text-slate-400">${v.fecha}</td>
+                    <td><span class="text-xs font-mono text-white">${v.numero_orden}</span></td>
+                    <td>${v.clientes?.nombre || 'N/A'}</td>
+                    <td><span class="text-green-400 font-medium">$${v.monto.toLocaleString('es-CL')}</span></td>
+                    <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${v.estado || 'Pendiente'}</span></td>
+                    <td class="text-xs text-slate-400">${new Date(v.fecha).toLocaleDateString('es-CL')}</td>
                 </tr>
             `).join('');
 
-            document.getElementById('totalRegistros').textContent = `${datosEjemplo.ventas.length} registros`;
+            document.getElementById('totalRegistros').textContent = `${ventas.length} registros`;
         }
 
         // ============================================

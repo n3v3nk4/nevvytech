@@ -10,33 +10,11 @@
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #0a1628; color: #e2e8f0; }
-        .sidebar {
-            background: #0f1a2e;
-            border-right: 1px solid rgba(255,255,255,0.06);
-            width: 220px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding: 20px 0;
-        }
-        .sidebar a {
-            display: block;
-            padding: 12px 20px;
-            color: #94a3b8;
-            transition: all 0.3s;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 0 10px;
-        }
-        .sidebar a:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .sidebar { background: #0f1a2e; border-right: 1px solid rgba(255,255,255,0.06); width: 220px; height: 100vh; position: fixed; top: 0; left: 0; padding: 20px 0; }
+        .sidebar a { display: block; padding: 12px 20px; color: #94a3b8; transition: all 0.3s; text-decoration: none; border-radius: 8px; margin: 0 10px; }
+        .sidebar a:hover, .sidebar a.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
         .main-content { margin-left: 220px; padding: 24px; }
-        .card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 20px;
-        }
+        .card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 20px; }
         .tabla { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .tabla th { text-align: left; padding: 10px 12px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
         .tabla td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
@@ -44,42 +22,31 @@
         .tag-pendiente { background: rgba(251,191,36,0.15); color: #fbbf24; }
         .tag-completada { background: rgba(74,222,128,0.15); color: #4ade80; }
         .tag-entregada { background: rgba(148,163,184,0.15); color: #94a3b8; }
-        .btn-primary {
-            background: linear-gradient(135deg, #1a56db, #3b82f6);
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+        .btn-primary { background: linear-gradient(135deg, #1a56db, #3b82f6); padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
         .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
-        .btn-success {
-            background: linear-gradient(135deg, #059669, #10b981);
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+        .btn-success { background: linear-gradient(135deg, #059669, #10b981); padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
         .btn-success:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(16,185,129,0.3); }
+        .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-danger:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(239,68,68,0.3); }
         .logo-text { font-size: 22px; font-weight: 900; color: white; padding: 0 20px; margin-bottom: 20px; }
         .logo-text span { color: #3b82f6; }
-        .input-dark {
-            background: #0f1a2e;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 10px 14px;
-            color: white;
-            outline: none;
-            transition: border-color 0.3s;
-        }
+        .input-dark { background: #0f1a2e; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px 14px; color: white; outline: none; transition: border-color 0.3s; }
         .input-dark:focus { border-color: #3b82f6; }
         .input-dark::placeholder { color: #475569; }
         select.input-dark { appearance: none; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: #1a2744; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 20px; font-weight: 700; color: white; }
+        .modal-close { background: none; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; transition: color 0.3s; }
+        .modal-close:hover { color: white; }
+        .btn-sm { padding: 4px 10px; font-size: 0.7rem; border-radius: 6px; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-edit { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .btn-edit:hover { background: rgba(59,130,246,0.4); }
+        .btn-delete { background: rgba(239,68,68,0.2); color: #f87171; }
+        .btn-delete:hover { background: rgba(239,68,68,0.4); }
+        .btn-whatsapp { background: rgba(37,211,102,0.2); color: #4ade80; }
+        .btn-whatsapp:hover { background: rgba(37,211,102,0.4); }
     </style>
 </head>
 <body>
@@ -101,14 +68,45 @@
             <span class="text-sm text-slate-400" id="fechaHora"></span>
         </div>
 
-        <div class="flex gap-3 mb-6">
-            <button onclick="mostrarFormulario()" class="btn-success">➕ Nueva Venta</button>
+        <div class="flex flex-wrap gap-3 mb-6">
+            <button onclick="abrirModal()" class="btn-success">➕ Nueva Venta</button>
             <button onclick="exportarReporte()" class="btn-primary">📊 Exportar Reporte</button>
         </div>
 
-        <!-- Formulario -->
-        <div id="formVenta" class="card hidden mb-6">
-            <h3 class="text-sm font-semibold text-white mb-4">📋 Nueva Venta</h3>
+        <!-- Tabla -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-semibold text-white">📋 Listado de Ventas</h3>
+                <span class="text-xs text-slate-400" id="totalRegistros">0 registros</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="tabla" id="tablaVentas">
+                    <thead>
+                        <tr>
+                            <th>N° Orden</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTabla">
+                        <tr><td colspan="7" class="text-center text-slate-500 py-6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalVenta">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitulo">📋 Nueva Venta</h3>
+                <button class="modal-close" onclick="cerrarModal()">&times;</button>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Cliente *</label>
@@ -144,35 +142,10 @@
                     </select>
                 </div>
             </div>
-            <div class="flex gap-3 mt-4">
-                <button onclick="guardarVenta()" class="btn-success">💾 Guardar Venta</button>
-                <button onclick="ocultarFormulario()" class="btn-primary" style="background:#64748b;">❌ Cancelar</button>
-            </div>
-        </div>
-
-        <!-- Tabla -->
-        <div class="card">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-semibold text-white">📋 Listado de Ventas</h3>
-                <span class="text-xs text-slate-400" id="totalRegistros">0 registros</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="tabla" id="tablaVentas">
-                    <thead>
-                        <tr>
-                            <th>N° Orden</th>
-                            <th>Cliente</th>
-                            <th>Producto</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th>Fecha</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpoTabla">
-                        <tr><td colspan="7" class="text-center text-slate-500 py-6">Cargando...</td></tr>
-                    </tbody>
-                </table>
+            <input type="hidden" id="editId" value="" />
+            <div class="flex flex-wrap gap-3 mt-6">
+                <button onclick="guardarVenta()" class="btn-success flex-1">💾 Guardar</button>
+                <button onclick="cerrarModal()" class="btn-primary" style="background:#64748b;">❌ Cancelar</button>
             </div>
         </div>
     </div>
@@ -181,7 +154,7 @@
         // ============================================
         // CONFIGURACIÓN DE SUPABASE
         // ============================================
-        const SUPABASE_URL = 'https://TU_URL_AQUI.supabase.co';
+        const SUPABASE_URL = 'https://fjsbinbakqxgsjrleqgi.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -211,22 +184,37 @@
         actualizarReloj();
 
         // ============================================
-        // MOSTRAR/OCULTAR FORMULARIO
+        // MODAL
         // ============================================
-        function mostrarFormulario() {
-            document.getElementById('formVenta').classList.remove('hidden');
+        function abrirModal(venta = null) {
+            document.getElementById('modalVenta').style.display = 'flex';
+            if (venta) {
+                document.getElementById('modalTitulo').textContent = '✏️ Editar Venta';
+                document.getElementById('clienteVenta').value = venta.clientes?.nombre || venta.cliente || '';
+                document.getElementById('telefonoVenta').value = venta.clientes?.telefono || '';
+                document.getElementById('productoVenta').value = venta.producto || '';
+                document.getElementById('montoVenta').value = venta.monto || '';
+                document.getElementById('estadoVenta').value = venta.estado || 'Pendiente';
+                document.getElementById('pagoVenta').value = venta.forma_pago || 'Efectivo';
+                document.getElementById('editId').value = venta.id;
+            } else {
+                document.getElementById('modalTitulo').textContent = '📋 Nueva Venta';
+                document.getElementById('clienteVenta').value = '';
+                document.getElementById('telefonoVenta').value = '';
+                document.getElementById('productoVenta').value = '';
+                document.getElementById('montoVenta').value = '';
+                document.getElementById('estadoVenta').value = 'Pendiente';
+                document.getElementById('pagoVenta').value = 'Efectivo';
+                document.getElementById('editId').value = '';
+            }
         }
 
-        function ocultarFormulario() {
-            document.getElementById('formVenta').classList.add('hidden');
-            document.getElementById('clienteVenta').value = '';
-            document.getElementById('telefonoVenta').value = '';
-            document.getElementById('productoVenta').value = '';
-            document.getElementById('montoVenta').value = '';
+        function cerrarModal() {
+            document.getElementById('modalVenta').style.display = 'none';
         }
 
         // ============================================
-        // GUARDAR VENTA EN SUPABASE
+        // GUARDAR VENTA (CREAR O ACTUALIZAR)
         // ============================================
         async function guardarVenta() {
             const cliente = document.getElementById('clienteVenta').value.trim();
@@ -235,6 +223,7 @@
             const monto = parseFloat(document.getElementById('montoVenta').value);
             const estado = document.getElementById('estadoVenta').value;
             const pago = document.getElementById('pagoVenta').value;
+            const editId = document.getElementById('editId').value;
 
             if (!cliente || !producto || !monto) {
                 alert('❌ Completa los campos obligatorios');
@@ -242,34 +231,67 @@
             }
 
             try {
-                // 1. Guardar cliente
-                const { data: clienteData, error: clienteError } = await supabaseClient
-                    .from('clientes')
-                    .insert({ nombre: cliente, telefono: telefono })
-                    .select();
+                if (editId) {
+                    // ========== EDITAR ==========
+                    // 1. Obtener venta actual
+                    const { data: ventaActual } = await supabaseClient
+                        .from('ventas')
+                        .select('cliente_id')
+                        .eq('id', editId)
+                        .single();
 
-                if (clienteError) throw new Error(clienteError.message);
+                    if (ventaActual) {
+                        // 2. Actualizar cliente
+                        await supabaseClient
+                            .from('clientes')
+                            .update({ nombre: cliente, telefono: telefono })
+                            .eq('id', ventaActual.cliente_id);
+                    }
 
-                const clienteId = clienteData[0].id;
+                    // 3. Actualizar venta
+                    const { error } = await supabaseClient
+                        .from('ventas')
+                        .update({
+                            producto: producto,
+                            monto: monto,
+                            estado: estado,
+                            forma_pago: pago
+                        })
+                        .eq('id', editId);
 
-                // 2. Guardar venta
-                const numero = `ORD-${new Date().getTime()}`;
-                const { error: ventaError } = await supabaseClient
-                    .from('ventas')
-                    .insert({
-                        numero_orden: numero,
-                        cliente_id: clienteId,
-                        producto: producto,
-                        monto: monto,
-                        estado: estado,
-                        forma_pago: pago,
-                        fecha: new Date().toISOString()
-                    });
+                    if (error) throw new Error(error.message);
+                    alert('✅ Venta actualizada correctamente');
 
-                if (ventaError) throw new Error(ventaError.message);
+                } else {
+                    // ========== CREAR ==========
+                    // 1. Guardar cliente
+                    const { data: clienteData, error: clienteError } = await supabaseClient
+                        .from('clientes')
+                        .insert({ nombre: cliente, telefono: telefono })
+                        .select();
 
-                alert('✅ Venta guardada correctamente');
-                ocultarFormulario();
+                    if (clienteError) throw new Error(clienteError.message);
+                    const clienteId = clienteData[0].id;
+
+                    // 2. Guardar venta
+                    const numero = `ORD-${new Date().getTime()}`;
+                    const { error: ventaError } = await supabaseClient
+                        .from('ventas')
+                        .insert({
+                            numero_orden: numero,
+                            cliente_id: clienteId,
+                            producto: producto,
+                            monto: monto,
+                            estado: estado,
+                            forma_pago: pago,
+                            fecha: new Date().toISOString()
+                        });
+
+                    if (ventaError) throw new Error(ventaError.message);
+                    alert('✅ Venta guardada correctamente');
+                }
+
+                cerrarModal();
                 cargarVentas();
 
             } catch (error) {
@@ -283,7 +305,7 @@
         async function cargarVentas() {
             const { data: ventas, error } = await supabaseClient
                 .from('ventas')
-                .select('*, clientes(nombre)')
+                .select('*, clientes(nombre, telefono)')
                 .order('fecha', { ascending: false })
                 .limit(50);
 
@@ -295,6 +317,7 @@
             const tbody = document.getElementById('cuerpoTabla');
             if (ventas.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay ventas registradas</td></tr>';
+                document.getElementById('totalRegistros').textContent = '0 registros';
                 return;
             }
 
@@ -313,7 +336,9 @@
                     <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${v.estado}</span></td>
                     <td class="text-xs text-slate-400">${new Date(v.fecha).toLocaleDateString('es-CL')}</td>
                     <td>
-                        <button onclick="eliminarVenta('${v.id}')" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
+                        <button onclick="editarVenta('${v.id}')" class="btn-sm btn-edit" title="Editar">✏️</button>
+                        <button onclick="eliminarVenta('${v.id}')" class="btn-sm btn-delete" title="Eliminar">🗑️</button>
+                        <button onclick="enviarWhatsApp('${v.clientes?.nombre || ''}', '${v.numero_orden}', ${v.monto})" class="btn-sm btn-whatsapp" title="WhatsApp">💬</button>
                     </td>
                 </tr>
             `).join('');
@@ -322,23 +347,52 @@
         }
 
         // ============================================
-        // ELIMINAR VENTA EN SUPABASE
+        // EDITAR VENTA
+        // ============================================
+        async function editarVenta(id) {
+            const { data: venta, error } = await supabaseClient
+                .from('ventas')
+                .select('*, clientes(nombre, telefono)')
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                alert('❌ Error al cargar la venta: ' + error.message);
+                return;
+            }
+
+            abrirModal(venta);
+        }
+
+        // ============================================
+        // ELIMINAR VENTA
         // ============================================
         async function eliminarVenta(id) {
             if (!confirm('¿Eliminar esta venta?')) return;
 
-            const { error } = await supabaseClient
-                .from('ventas')
-                .delete()
-                .eq('id', id);
+            try {
+                const { error } = await supabaseClient
+                    .from('ventas')
+                    .delete()
+                    .eq('id', id);
 
-            if (error) {
-                alert('❌ Error al eliminar: ' + error.message);
-                return;
+                if (error) throw new Error(error.message);
+
+                alert('✅ Venta eliminada');
+                cargarVentas();
+
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
             }
+        }
 
-            alert('✅ Venta eliminada');
-            cargarVentas();
+        // ============================================
+        // ENVIAR POR WHATSAPP
+        // ============================================
+        function enviarWhatsApp(cliente, numero, total) {
+            const mensaje = `Hola ${cliente}, tu orden ${numero} está lista. Total: $${total.toLocaleString('es-CL')}. ¡Gracias por confiar en NEVVY TECH!`;
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, '_blank');
         }
 
         // ============================================

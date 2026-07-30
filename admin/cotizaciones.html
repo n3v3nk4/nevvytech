@@ -5,37 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NEVVY TECH · Cotizaciones</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #0a1628; color: #e2e8f0; }
-        .sidebar {
-            background: #0f1a2e;
-            border-right: 1px solid rgba(255,255,255,0.06);
-            width: 220px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding: 20px 0;
-        }
-        .sidebar a {
-            display: block;
-            padding: 12px 20px;
-            color: #94a3b8;
-            transition: all 0.3s;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 0 10px;
-        }
-        .sidebar a:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .sidebar { background: #0f1a2e; border-right: 1px solid rgba(255,255,255,0.06); width: 220px; height: 100vh; position: fixed; top: 0; left: 0; padding: 20px 0; }
+        .sidebar a { display: block; padding: 12px 20px; color: #94a3b8; transition: all 0.3s; text-decoration: none; border-radius: 8px; margin: 0 10px; }
+        .sidebar a:hover, .sidebar a.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
         .main-content { margin-left: 220px; padding: 24px; }
-        .card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 20px;
-        }
+        .card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 20px; }
         .tabla { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .tabla th { text-align: left; padding: 10px 12px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
         .tabla td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
@@ -44,52 +23,32 @@
         .tag-enviada { background: rgba(59,130,246,0.15); color: #60a5fa; }
         .tag-aceptada { background: rgba(74,222,128,0.15); color: #4ade80; }
         .tag-rechazada { background: rgba(248,113,113,0.15); color: #f87171; }
-        .btn-success {
-            background: linear-gradient(135deg, #059669, #10b981);
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-success:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(16,185,129,0.3); }
-        .btn-primary {
-            background: linear-gradient(135deg, #1a56db, #3b82f6);
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+        .btn-primary { background: linear-gradient(135deg, #1a56db, #3b82f6); padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
         .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
-        .btn-warning {
-            background: linear-gradient(135deg, #d97706, #f59e0b);
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+        .btn-success { background: linear-gradient(135deg, #059669, #10b981); padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-success:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(16,185,129,0.3); }
+        .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-danger:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(239,68,68,0.3); }
+        .btn-warning { background: linear-gradient(135deg, #d97706, #f59e0b); padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
         .btn-warning:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(245,158,11,0.3); }
         .logo-text { font-size: 22px; font-weight: 900; color: white; padding: 0 20px; margin-bottom: 20px; }
         .logo-text span { color: #3b82f6; }
-        .input-dark {
-            background: #0f1a2e;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 10px 14px;
-            color: white;
-            outline: none;
-            transition: border-color 0.3s;
-        }
+        .input-dark { background: #0f1a2e; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px 14px; color: white; outline: none; transition: border-color 0.3s; }
         .input-dark:focus { border-color: #3b82f6; }
         .input-dark::placeholder { color: #475569; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: #1a2744; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 20px; font-weight: 700; color: white; }
+        .modal-close { background: none; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; transition: color 0.3s; }
+        .modal-close:hover { color: white; }
+        .btn-sm { padding: 4px 10px; font-size: 0.7rem; border-radius: 6px; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-edit { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .btn-edit:hover { background: rgba(59,130,246,0.4); }
+        .btn-delete { background: rgba(239,68,68,0.2); color: #f87171; }
+        .btn-delete:hover { background: rgba(239,68,68,0.4); }
+        .btn-whatsapp { background: rgba(37,211,102,0.2); color: #4ade80; }
+        .btn-whatsapp:hover { background: rgba(37,211,102,0.4); }
     </style>
 </head>
 <body>
@@ -111,49 +70,11 @@
             <span class="text-sm text-slate-400" id="fechaHora"></span>
         </div>
 
-        <!-- Botones -->
-        <div class="flex gap-3 mb-6">
-            <button onclick="mostrarFormulario()" class="btn-warning">➕ Nueva Cotización</button>
+        <div class="flex flex-wrap gap-3 mb-6">
+            <button onclick="abrirModal()" class="btn-warning">➕ Nueva Cotización</button>
             <button onclick="exportarReporte()" class="btn-primary">📊 Exportar Reporte</button>
         </div>
 
-        <!-- Formulario de nueva cotización -->
-        <div id="formCotizacion" class="card hidden mb-6">
-            <h3 class="text-sm font-semibold text-white mb-4">📋 Nueva Cotización</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Cliente *</label>
-                    <input type="text" id="clienteCot" class="input-dark w-full" placeholder="Nombre del cliente" />
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Teléfono *</label>
-                    <input type="text" id="telefonoCot" class="input-dark w-full" placeholder="+56 9 1234 5678" />
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Servicios *</label>
-                    <input type="text" id="serviciosCot" class="input-dark w-full" placeholder="Ej: Desarrollo Web, App Móvil" />
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Monto Total $ *</label>
-                    <input type="number" id="montoCot" class="input-dark w-full" placeholder="150000" />
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Estado</label>
-                    <select id="estadoCot" class="input-dark w-full">
-                        <option value="pendiente">Pendiente</option>
-                        <option value="enviada">Enviada</option>
-                        <option value="aceptada">Aceptada</option>
-                        <option value="rechazada">Rechazada</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex gap-3 mt-4">
-                <button onclick="guardarCotizacion()" class="btn-warning">💾 Guardar Cotización</button>
-                <button onclick="ocultarFormulario()" class="btn-primary" style="background:#64748b;">❌ Cancelar</button>
-            </div>
-        </div>
-
-        <!-- Tabla -->
         <div class="card">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-semibold text-white">📋 Listado de Cotizaciones</h3>
@@ -180,7 +101,56 @@
         </div>
     </div>
 
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalCotizacion">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitulo">📋 Nueva Cotización</h3>
+                <button class="modal-close" onclick="cerrarModal()">&times;</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Cliente *</label>
+                    <input type="text" id="clienteCot" class="input-dark w-full" placeholder="Nombre del cliente" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Teléfono *</label>
+                    <input type="text" id="telefonoCot" class="input-dark w-full" placeholder="+56 9 1234 5678" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Servicios *</label>
+                    <input type="text" id="serviciosCot" class="input-dark w-full" placeholder="Ej: Desarrollo Web, App Móvil" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Total $ *</label>
+                    <input type="number" id="totalCot" class="input-dark w-full" placeholder="150000" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Estado</label>
+                    <select id="estadoCot" class="input-dark w-full">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Enviada">Enviada</option>
+                        <option value="Aceptada">Aceptada</option>
+                        <option value="Rechazada">Rechazada</option>
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" id="editId" value="" />
+            <div class="flex flex-wrap gap-3 mt-6">
+                <button onclick="guardarCotizacion()" class="btn-warning flex-1">💾 Guardar</button>
+                <button onclick="cerrarModal()" class="btn-primary" style="background:#64748b;">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ============================================
+        // CONFIGURACIÓN DE SUPABASE
+        // ============================================
+        const SUPABASE_URL = 'https://fjsbinbakqxgsjrleqgi.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         // ============================================
         // VERIFICAR SESIÓN
         // ============================================
@@ -207,92 +177,157 @@
         actualizarReloj();
 
         // ============================================
-        // DATOS DE EJEMPLO
+        // MODAL
         // ============================================
-        let cotizaciones = [
-            { numero: 'COT-2026-001', cliente: 'Juan Pérez', servicios: 'Desarrollo Web, App Móvil', total: 250000, estado: 'enviada', fecha: '25/07/2026' },
-            { numero: 'COT-2026-002', cliente: 'María González', servicios: 'Sitio Web', total: 80000, estado: 'pendiente', fecha: '24/07/2026' },
-            { numero: 'COT-2026-003', cliente: 'Carlos López', servicios: 'Automatización + IA', total: 180000, estado: 'aceptada', fecha: '23/07/2026' },
-        ];
-
-        // ============================================
-        // MOSTRAR/OCULTAR FORMULARIO
-        // ============================================
-        function mostrarFormulario() {
-            document.getElementById('formCotizacion').classList.remove('hidden');
+        function abrirModal(cotizacion = null) {
+            document.getElementById('modalCotizacion').style.display = 'flex';
+            if (cotizacion) {
+                document.getElementById('modalTitulo').textContent = '✏️ Editar Cotización';
+                document.getElementById('clienteCot').value = cotizacion.clientes?.nombre || '';
+                document.getElementById('telefonoCot').value = cotizacion.clientes?.telefono || '';
+                document.getElementById('serviciosCot').value = cotizacion.servicios || '';
+                document.getElementById('totalCot').value = cotizacion.total || '';
+                document.getElementById('estadoCot').value = cotizacion.estado || 'Pendiente';
+                document.getElementById('editId').value = cotizacion.id;
+            } else {
+                document.getElementById('modalTitulo').textContent = '📋 Nueva Cotización';
+                document.getElementById('clienteCot').value = '';
+                document.getElementById('telefonoCot').value = '';
+                document.getElementById('serviciosCot').value = '';
+                document.getElementById('totalCot').value = '';
+                document.getElementById('estadoCot').value = 'Pendiente';
+                document.getElementById('editId').value = '';
+            }
         }
 
-        function ocultarFormulario() {
-            document.getElementById('formCotizacion').classList.add('hidden');
-            document.getElementById('clienteCot').value = '';
-            document.getElementById('telefonoCot').value = '';
-            document.getElementById('serviciosCot').value = '';
-            document.getElementById('montoCot').value = '';
+        function cerrarModal() {
+            document.getElementById('modalCotizacion').style.display = 'none';
         }
 
         // ============================================
-        // GUARDAR COTIZACIÓN
+        // GUARDAR COTIZACIÓN (CREAR O ACTUALIZAR)
         // ============================================
-        function guardarCotizacion() {
+        async function guardarCotizacion() {
             const cliente = document.getElementById('clienteCot').value.trim();
             const telefono = document.getElementById('telefonoCot').value.trim();
             const servicios = document.getElementById('serviciosCot').value.trim();
-            const monto = parseFloat(document.getElementById('montoCot').value);
+            const total = parseFloat(document.getElementById('totalCot').value);
             const estado = document.getElementById('estadoCot').value;
+            const editId = document.getElementById('editId').value;
 
-            if (!cliente || !telefono || !servicios || !monto) {
+            if (!cliente || !telefono || !servicios || !total) {
                 alert('❌ Completa todos los campos obligatorios');
                 return;
             }
 
-            cotizaciones.push({
-                numero: `COT-2026-${String(cotizaciones.length + 1).padStart(3, '0')}`,
-                cliente: cliente,
-                servicios: servicios,
-                total: monto,
-                estado: estado,
-                fecha: new Date().toLocaleDateString('es-CL')
-            });
+            try {
+                if (editId) {
+                    // ========== EDITAR ==========
+                    // 1. Obtener cotización actual
+                    const { data: cotActual } = await supabaseClient
+                        .from('cotizaciones')
+                        .select('cliente_id')
+                        .eq('id', editId)
+                        .single();
 
-            cargarCotizaciones();
-            ocultarFormulario();
-            alert('✅ Cotización guardada correctamente');
+                    if (cotActual) {
+                        // 2. Actualizar cliente
+                        await supabaseClient
+                            .from('clientes')
+                            .update({ nombre: cliente, telefono: telefono })
+                            .eq('id', cotActual.cliente_id);
+                    }
+
+                    // 3. Actualizar cotización
+                    const { error } = await supabaseClient
+                        .from('cotizaciones')
+                        .update({
+                            servicios: servicios,
+                            total: total,
+                            estado: estado
+                        })
+                        .eq('id', editId);
+
+                    if (error) throw new Error(error.message);
+                    alert('✅ Cotización actualizada correctamente');
+
+                } else {
+                    // ========== CREAR ==========
+                    // 1. Guardar cliente
+                    const { data: clienteData, error: clienteError } = await supabaseClient
+                        .from('clientes')
+                        .insert({ nombre: cliente, telefono: telefono })
+                        .select();
+
+                    if (clienteError) throw new Error(clienteError.message);
+                    const clienteId = clienteData[0].id;
+
+                    // 2. Guardar cotización
+                    const numero = `COT-${new Date().getTime()}`;
+                    const { error: cotError } = await supabaseClient
+                        .from('cotizaciones')
+                        .insert({
+                            numero_cotizacion: numero,
+                            cliente_id: clienteId,
+                            servicios: servicios,
+                            total: total,
+                            estado: estado,
+                            fecha: new Date().toISOString()
+                        });
+
+                    if (cotError) throw new Error(cotError.message);
+                    alert('✅ Cotización guardada correctamente');
+                }
+
+                cerrarModal();
+                cargarCotizaciones();
+
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
         }
 
         // ============================================
-        // CARGAR TABLA
+        // CARGAR COTIZACIONES
         // ============================================
-        function cargarCotizaciones() {
-            const tbody = document.getElementById('cuerpoTabla');
-            const estadoClass = {
-                'pendiente': 'tag-pendiente',
-                'enviada': 'tag-enviada',
-                'aceptada': 'tag-aceptada',
-                'rechazada': 'tag-rechazada'
-            };
-            const estadoTexto = {
-                'pendiente': 'Pendiente',
-                'enviada': 'Enviada',
-                'aceptada': 'Aceptada',
-                'rechazada': 'Rechazada'
-            };
+        async function cargarCotizaciones() {
+            const { data: cotizaciones, error } = await supabaseClient
+                .from('cotizaciones')
+                .select('*, clientes(nombre, telefono)')
+                .order('fecha', { ascending: false })
+                .limit(50);
 
-            if (cotizaciones.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay cotizaciones</td></tr>';
+            if (error) {
+                alert('❌ Error al cargar cotizaciones: ' + error.message);
                 return;
             }
 
-            tbody.innerHTML = cotizaciones.map((c, i) => `
+            const tbody = document.getElementById('cuerpoTabla');
+            if (cotizaciones.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay cotizaciones registradas</td></tr>';
+                document.getElementById('totalRegistros').textContent = '0 registros';
+                return;
+            }
+
+            const estadoClass = {
+                'Pendiente': 'tag-pendiente',
+                'Enviada': 'tag-enviada',
+                'Aceptada': 'tag-aceptada',
+                'Rechazada': 'tag-rechazada'
+            };
+
+            tbody.innerHTML = cotizaciones.map(c => `
                 <tr>
-                    <td><span class="text-xs font-mono text-white">${c.numero}</span></td>
-                    <td>${c.cliente}</td>
+                    <td><span class="text-xs font-mono text-white">${c.numero_cotizacion}</span></td>
+                    <td>${c.clientes?.nombre || 'N/A'}</td>
                     <td>${c.servicios}</td>
                     <td><span class="text-green-400 font-medium">$${c.total.toLocaleString('es-CL')}</span></td>
-                    <td><span class="tag ${estadoClass[c.estado] || 'tag-pendiente'}">${estadoTexto[c.estado] || c.estado}</span></td>
-                    <td class="text-xs text-slate-400">${c.fecha}</td>
+                    <td><span class="tag ${estadoClass[c.estado] || 'tag-pendiente'}">${c.estado}</span></td>
+                    <td class="text-xs text-slate-400">${new Date(c.fecha).toLocaleDateString('es-CL')}</td>
                     <td>
-                        <button onclick="enviarWhatsApp('${c.cliente}', '${c.numero}', ${c.total})" class="text-green-400 hover:text-green-300 text-sm">💬</button>
-                        <button onclick="eliminarCotizacion(${i})" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
+                        <button onclick="editarCotizacion('${c.id}')" class="btn-sm btn-edit" title="Editar">✏️</button>
+                        <button onclick="eliminarCotizacion('${c.id}')" class="btn-sm btn-delete" title="Eliminar">🗑️</button>
+                        <button onclick="enviarWhatsApp('${c.clientes?.nombre || ''}', '${c.numero_cotizacion}', ${c.total})" class="btn-sm btn-whatsapp" title="WhatsApp">💬</button>
                     </td>
                 </tr>
             `).join('');
@@ -301,34 +336,76 @@
         }
 
         // ============================================
-        // ENVIAR POR WHATSAPP
+        // EDITAR COTIZACIÓN
+        // ============================================
+        async function editarCotizacion(id) {
+            const { data: cotizacion, error } = await supabaseClient
+                .from('cotizaciones')
+                .select('*, clientes(nombre, telefono)')
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                alert('❌ Error al cargar la cotización: ' + error.message);
+                return;
+            }
+
+            abrirModal(cotizacion);
+        }
+
+        // ============================================
+        // ELIMINAR COTIZACIÓN
+        // ============================================
+        async function eliminarCotizacion(id) {
+            if (!confirm('¿Eliminar esta cotización?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('cotizaciones')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw new Error(error.message);
+
+                alert('✅ Cotización eliminada');
+                cargarCotizaciones();
+
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // ENVIAR WHATSAPP
         // ============================================
         function enviarWhatsApp(cliente, numero, total) {
-            const mensaje = `Hola ${cliente}, te enviamos la cotización ${numero} por un total de $${total.toLocaleString('es-CL')}. ¿Te parece bien? ¡Quedamos atentos!`;
+            const mensaje = `Hola ${cliente}, te enviamos la cotización ${numero} por $${total.toLocaleString('es-CL')}. ¿Te parece bien? ¡Quedamos atentos!`;
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
         }
 
         // ============================================
-        // ELIMINAR
-        // ============================================
-        function eliminarCotizacion(index) {
-            if (confirm('¿Eliminar esta cotización?')) {
-                cotizaciones.splice(index, 1);
-                cargarCotizaciones();
-            }
-        }
-
-        // ============================================
         // EXPORTAR REPORTE
         // ============================================
-        function exportarReporte() {
+        async function exportarReporte() {
+            const { data: cotizaciones, error } = await supabaseClient
+                .from('cotizaciones')
+                .select('*, clientes(nombre)')
+                .order('fecha', { ascending: false });
+
+            if (error) {
+                alert('❌ Error al exportar: ' + error.message);
+                return;
+            }
+
             let texto = 'REPORTE DE COTIZACIONES\n';
             texto += '='.repeat(50) + '\n';
             texto += `Generado: ${new Date().toLocaleString('es-CL')}\n\n`;
+            texto += 'N° Cotización | Cliente | Servicios | Total | Estado | Fecha\n';
+            texto += '-'.repeat(70) + '\n';
             
             cotizaciones.forEach(c => {
-                texto += `${c.numero} | ${c.cliente} | ${c.servicios} | $${c.total} | ${c.estado} | ${c.fecha}\n`;
+                texto += `${c.numero_cotizacion} | ${c.clientes?.nombre || 'N/A'} | ${c.servicios} | $${c.total} | ${c.estado} | ${new Date(c.fecha).toLocaleDateString('es-CL')}\n`;
             });
             
             const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });

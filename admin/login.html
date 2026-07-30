@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NEVVY TECH · Panel de Administración</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -59,8 +60,8 @@
             
             <form id="formLogin" onsubmit="return iniciarSesion(event)">
                 <div class="mb-4">
-                    <label class="block text-sm text-slate-400 mb-1">Usuario</label>
-                    <input type="text" id="usuario" class="input-dark" placeholder="admin" required />
+                    <label class="block text-sm text-slate-400 mb-1">Email o Usuario</label>
+                    <input type="text" id="usuario" class="input-dark" placeholder="admin@nevvytech.cl" required />
                 </div>
                 <div class="mb-6">
                     <label class="block text-sm text-slate-400 mb-1">Contraseña</label>
@@ -76,27 +77,78 @@
     </div>
 
     <script>
-        function iniciarSesion(event) {
+        // ============================================
+        // CONFIGURACIÓN DE SUPABASE
+        // ============================================
+        const SUPABASE_URL = 'https://fjsbinbakqxgsjrleqgi.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============================================
+        // INICIAR SESIÓN CON SUPABASE
+        // ============================================
+        async function iniciarSesion(event) {
             event.preventDefault();
             
-            const usuario = document.getElementById('usuario').value;
-            const password = document.getElementById('password').value;
+            const usuario = document.getElementById('usuario').value.trim();
+            const password = document.getElementById('password').value.trim();
             const errorDiv = document.getElementById('mensajeError');
-            
-            // Credenciales (puedes cambiarlas)
-            if (usuario === 'admin' && password === 'nevvy2026') {
+
+            if (!usuario || !password) {
+                errorDiv.textContent = '❌ Completa todos los campos';
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+                return false;
+            }
+
+            try {
+                // Buscar usuario en la tabla 'usuarios' de Supabase
+                const { data: usuarios, error } = await supabaseClient
+                    .from('usuarios')
+                    .select('*')
+                    .or(`email.eq.${usuario},nombre.eq.${usuario}`)
+                    .eq('password', password);
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+
+                if (!usuarios || usuarios.length === 0) {
+                    errorDiv.textContent = '❌ Usuario o contraseña incorrectos';
+                    errorDiv.classList.remove('hidden');
+                    setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+                    return false;
+                }
+
+                // Usuario autenticado correctamente
+                const user = usuarios[0];
+                
                 // Guardar sesión en localStorage
                 localStorage.setItem('nevvy_session', 'true');
-                localStorage.setItem('nevvy_usuario', usuario);
+                localStorage.setItem('nevvy_usuario', user.nombre || user.email);
+                localStorage.setItem('nevvy_user_id', user.id);
+                localStorage.setItem('nevvy_user_rol', user.rol || 'usuario');
+
+                // Redirigir al dashboard
                 window.location.href = 'dashboard.html';
-            } else {
-                errorDiv.textContent = 'Usuario o contraseña incorrectos';
+
+            } catch (error) {
+                errorDiv.textContent = '❌ Error al conectar: ' + error.message;
                 errorDiv.classList.remove('hidden');
                 setTimeout(() => errorDiv.classList.add('hidden'), 3000);
             }
-            
+
             return false;
         }
+
+        // ============================================
+        // SI YA ESTÁ LOGUEADO, REDIRIGIR AL DASHBOARD
+        // ============================================
+        (function verificarSesion() {
+            if (localStorage.getItem('nevvy_session') === 'true') {
+                window.location.href = 'dashboard.html';
+            }
+        })();
     </script>
 </body>
 </html>
