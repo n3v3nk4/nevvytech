@@ -73,7 +73,6 @@
             <button onclick="exportarReporte()" class="btn-primary">📊 Exportar Reporte</button>
         </div>
 
-        <!-- Tabla -->
         <div class="card">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-semibold text-white">📋 Listado de Ventas</h3>
@@ -233,7 +232,6 @@
             try {
                 if (editId) {
                     // ========== EDITAR ==========
-                    // 1. Obtener venta actual
                     const { data: ventaActual } = await supabaseClient
                         .from('ventas')
                         .select('cliente_id')
@@ -241,14 +239,12 @@
                         .single();
 
                     if (ventaActual) {
-                        // 2. Actualizar cliente
                         await supabaseClient
                             .from('clientes')
                             .update({ nombre: cliente, telefono: telefono })
                             .eq('id', ventaActual.cliente_id);
                     }
 
-                    // 3. Actualizar venta
                     const { error } = await supabaseClient
                         .from('ventas')
                         .update({
@@ -264,7 +260,6 @@
 
                 } else {
                     // ========== CREAR ==========
-                    // 1. Guardar cliente
                     const { data: clienteData, error: clienteError } = await supabaseClient
                         .from('clientes')
                         .insert({ nombre: cliente, telefono: telefono })
@@ -273,7 +268,6 @@
                     if (clienteError) throw new Error(clienteError.message);
                     const clienteId = clienteData[0].id;
 
-                    // 2. Guardar venta
                     const numero = `ORD-${new Date().getTime()}`;
                     const { error: ventaError } = await supabaseClient
                         .from('ventas')
