@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NEVVY TECH · Ventas</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -100,13 +101,12 @@
             <span class="text-sm text-slate-400" id="fechaHora"></span>
         </div>
 
-        <!-- Botones de acción -->
         <div class="flex gap-3 mb-6">
             <button onclick="mostrarFormulario()" class="btn-success">➕ Nueva Venta</button>
             <button onclick="exportarReporte()" class="btn-primary">📊 Exportar Reporte</button>
         </div>
 
-        <!-- Formulario de nueva venta -->
+        <!-- Formulario -->
         <div id="formVenta" class="card hidden mb-6">
             <h3 class="text-sm font-semibold text-white mb-4">📋 Nueva Venta</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,18 +129,18 @@
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Estado</label>
                     <select id="estadoVenta" class="input-dark w-full">
-                        <option value="pendiente">Pendiente</option>
-                        <option value="completada">Completada</option>
-                        <option value="entregada">Entregada</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Completada">Completada</option>
+                        <option value="Entregada">Entregada</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Forma de pago</label>
                     <select id="pagoVenta" class="input-dark w-full">
-                        <option value="efectivo">Efectivo</option>
-                        <option value="transferencia">Transferencia</option>
-                        <option value="debito">Débito</option>
-                        <option value="credito">Crédito</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Débito">Débito</option>
+                        <option value="Crédito">Crédito</option>
                     </select>
                 </div>
             </div>
@@ -150,7 +150,7 @@
             </div>
         </div>
 
-        <!-- Tabla de ventas -->
+        <!-- Tabla -->
         <div class="card">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-semibold text-white">📋 Listado de Ventas</h3>
@@ -179,6 +179,13 @@
 
     <script>
         // ============================================
+        // CONFIGURACIÓN DE SUPABASE
+        // ============================================
+        const SUPABASE_URL = 'https://TU_URL_AQUI.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============================================
         // VERIFICAR SESIÓN
         // ============================================
         function verificarSesion() {
@@ -204,15 +211,6 @@
         actualizarReloj();
 
         // ============================================
-        // DATOS DE EJEMPLO
-        // ============================================
-        let ventas = [
-            { numero: 'ORD-2026-001', cliente: 'Juan Pérez', producto: 'Desarrollo de Software', total: 50000, estado: 'completada', fecha: '25/07/2026' },
-            { numero: 'ORD-2026-002', cliente: 'María González', producto: 'Sitio Web', total: 35000, estado: 'pendiente', fecha: '24/07/2026' },
-            { numero: 'ORD-2026-003', cliente: 'Carlos López', producto: 'Automatización', total: 80000, estado: 'entregada', fecha: '23/07/2026' },
-        ];
-
-        // ============================================
         // MOSTRAR/OCULTAR FORMULARIO
         // ============================================
         function mostrarFormulario() {
@@ -228,66 +226,94 @@
         }
 
         // ============================================
-        // GUARDAR VENTA
+        // GUARDAR VENTA EN SUPABASE
         // ============================================
-        function guardarVenta() {
+        async function guardarVenta() {
             const cliente = document.getElementById('clienteVenta').value.trim();
+            const telefono = document.getElementById('telefonoVenta').value.trim();
             const producto = document.getElementById('productoVenta').value.trim();
             const monto = parseFloat(document.getElementById('montoVenta').value);
             const estado = document.getElementById('estadoVenta').value;
             const pago = document.getElementById('pagoVenta').value;
 
             if (!cliente || !producto || !monto) {
-                alert('❌ Completa los campos obligatorios: Cliente, Producto y Monto');
+                alert('❌ Completa los campos obligatorios');
                 return;
             }
 
-            const nuevaVenta = {
-                numero: `ORD-2026-${String(ventas.length + 1).padStart(3, '0')}`,
-                cliente: cliente,
-                producto: producto,
-                total: monto,
-                estado: estado,
-                fecha: new Date().toLocaleDateString('es-CL')
-            };
+            try {
+                // 1. Guardar cliente
+                const { data: clienteData, error: clienteError } = await supabaseClient
+                    .from('clientes')
+                    .insert({ nombre: cliente, telefono: telefono })
+                    .select();
 
-            ventas.push(nuevaVenta);
-            cargarVentas();
-            ocultarFormulario();
-            alert('✅ Venta guardada correctamente');
+                if (clienteError) throw new Error(clienteError.message);
+
+                const clienteId = clienteData[0].id;
+
+                // 2. Guardar venta
+                const numero = `ORD-${new Date().getTime()}`;
+                const { error: ventaError } = await supabaseClient
+                    .from('ventas')
+                    .insert({
+                        numero_orden: numero,
+                        cliente_id: clienteId,
+                        producto: producto,
+                        monto: monto,
+                        estado: estado,
+                        forma_pago: pago,
+                        fecha: new Date().toISOString()
+                    });
+
+                if (ventaError) throw new Error(ventaError.message);
+
+                alert('✅ Venta guardada correctamente');
+                ocultarFormulario();
+                cargarVentas();
+
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
         }
 
         // ============================================
-        // CARGAR TABLA DE VENTAS
+        // CARGAR VENTAS DESDE SUPABASE
         // ============================================
-        function cargarVentas() {
-            const tbody = document.getElementById('cuerpoTabla');
-            const estadoClass = {
-                'pendiente': 'tag-pendiente',
-                'completada': 'tag-completada',
-                'entregada': 'tag-entregada'
-            };
-            const estadoTexto = {
-                'pendiente': 'Pendiente',
-                'completada': 'Completada',
-                'entregada': 'Entregada'
-            };
+        async function cargarVentas() {
+            const { data: ventas, error } = await supabaseClient
+                .from('ventas')
+                .select('*, clientes(nombre)')
+                .order('fecha', { ascending: false })
+                .limit(50);
 
+            if (error) {
+                alert('❌ Error al cargar ventas: ' + error.message);
+                return;
+            }
+
+            const tbody = document.getElementById('cuerpoTabla');
             if (ventas.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay ventas registradas</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = ventas.map((v, i) => `
+            const estadoClass = {
+                'Pendiente': 'tag-pendiente',
+                'Completada': 'tag-completada',
+                'Entregada': 'tag-entregada'
+            };
+
+            tbody.innerHTML = ventas.map(v => `
                 <tr>
-                    <td><span class="text-xs font-mono text-white">${v.numero}</span></td>
-                    <td>${v.cliente}</td>
+                    <td><span class="text-xs font-mono text-white">${v.numero_orden}</span></td>
+                    <td>${v.clientes?.nombre || 'N/A'}</td>
                     <td>${v.producto}</td>
-                    <td><span class="text-green-400 font-medium">$${v.total.toLocaleString('es-CL')}</span></td>
-                    <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${estadoTexto[v.estado] || v.estado}</span></td>
-                    <td class="text-xs text-slate-400">${v.fecha}</td>
+                    <td><span class="text-green-400 font-medium">$${v.monto.toLocaleString('es-CL')}</span></td>
+                    <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${v.estado}</span></td>
+                    <td class="text-xs text-slate-400">${new Date(v.fecha).toLocaleDateString('es-CL')}</td>
                     <td>
-                        <button onclick="eliminarVenta(${i})" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
+                        <button onclick="eliminarVenta('${v.id}')" class="text-red-400 hover:text-red-300 text-sm">🗑️</button>
                     </td>
                 </tr>
             `).join('');
@@ -296,19 +322,39 @@
         }
 
         // ============================================
-        // ELIMINAR VENTA
+        // ELIMINAR VENTA EN SUPABASE
         // ============================================
-        function eliminarVenta(index) {
-            if (confirm('¿Eliminar esta venta?')) {
-                ventas.splice(index, 1);
-                cargarVentas();
+        async function eliminarVenta(id) {
+            if (!confirm('¿Eliminar esta venta?')) return;
+
+            const { error } = await supabaseClient
+                .from('ventas')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert('❌ Error al eliminar: ' + error.message);
+                return;
             }
+
+            alert('✅ Venta eliminada');
+            cargarVentas();
         }
 
         // ============================================
         // EXPORTAR REPORTE
         // ============================================
-        function exportarReporte() {
+        async function exportarReporte() {
+            const { data: ventas, error } = await supabaseClient
+                .from('ventas')
+                .select('*, clientes(nombre)')
+                .order('fecha', { ascending: false });
+
+            if (error) {
+                alert('❌ Error al exportar: ' + error.message);
+                return;
+            }
+
             let texto = 'REPORTE DE VENTAS\n';
             texto += '='.repeat(50) + '\n';
             texto += `Generado: ${new Date().toLocaleString('es-CL')}\n\n`;
@@ -316,14 +362,13 @@
             texto += '-'.repeat(60) + '\n';
             
             ventas.forEach(v => {
-                texto += `${v.numero} | ${v.cliente} | ${v.producto} | $${v.total} | ${v.estado} | ${v.fecha}\n`;
+                texto += `${v.numero_orden} | ${v.clientes?.nombre || 'N/A'} | ${v.producto} | $${v.monto} | ${v.estado} | ${new Date(v.fecha).toLocaleDateString('es-CL')}\n`;
             });
             
+            const total = ventas.reduce((sum, v) => sum + v.monto, 0);
             texto += '\n' + '='.repeat(50) + '\n';
-            const total = ventas.reduce((sum, v) => sum + v.total, 0);
             texto += `TOTAL INGRESOS: $${total.toLocaleString('es-CL')}\n`;
             
-            // Descargar como .txt
             const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
