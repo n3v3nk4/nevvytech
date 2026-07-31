@@ -3,6 +3,7 @@ from flask_cors import CORS
 import sqlite3
 from datetime import datetime
 import os
+import hashlib  # Para encriptar contraseñas (opcional pero recomendado)
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
@@ -23,6 +24,75 @@ def inicio():
     return '🚀 NEVVY TECH API funcionando correctamente'
 
 # ============================================
+# 🔐 ENDPOINT DE LOGIN (NUEVO)
+# ============================================
+@app.route('/api/login', methods=['POST'])
+def login():
+    try:
+        data = request.json
+        email = data.get('email', '').strip()
+        password = data.get('password', '').strip()
+        
+        # Validar campos
+        if not email or not password:
+            return jsonify({
+                'success': False,
+                'message': 'Email y contraseña son requeridos'
+            }), 400
+        
+        # Conectar a la base de datos
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Buscar usuario por email
+        cursor.execute('''
+            SELECT id, email, nombre, password, rol 
+            FROM usuarios 
+            WHERE email = ? OR nombre = ?
+        ''', (email, email))
+        
+        user = cursor.fetchone()
+        conn.close()
+        
+        # Verificar si existe el usuario
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': 'Usuario no encontrado'
+            }), 401
+        
+        # Verificar contraseña (sin hash - texto plano)
+        if user['password'] != password:
+            return jsonify({
+                'success': False,
+                'message': 'Contraseña incorrecta'
+            }), 401
+        
+        # Si quieres usar hash (RECOMENDADO), descomenta esto:
+        # if not hashlib.sha256(password.encode()).hexdigest() == user['password']:
+        #     return jsonify({'success': False, 'message': 'Contraseña incorrecta'}), 401
+        
+        # Login exitoso - devolver datos del usuario
+        return jsonify({
+            'success': True,
+            'message': 'Login exitoso',
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'nombre': user['nombre'],
+                'rol': user['rol']
+            },
+            'token': f"token_{user['id']}_{int(datetime.now().timestamp())}"  # Token simple
+        })
+        
+    except Exception as e:
+        print(f"Error en login: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error en el servidor: {str(e)}'
+        }), 500
+
+# ============================================
 # RUTA PARA CREAR USUARIO ADMIN
 # ============================================
 @app.route('/crear-admin')
@@ -36,7 +106,8 @@ def crear_admin():
         if not cursor.fetchone():
             return '❌ La tabla usuarios no existe. Ejecuta database.py primero.', 500
         
-        # Insertar admin
+        # Insertar admin (con hash si usas hashing)
+        # Si usas hash, cambia 'nevvy2026' por hashlib.sha256('nevvy2026'.encode()).hexdigest()
         cursor.execute('''
             INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
             VALUES (?, ?, ?, ?)
