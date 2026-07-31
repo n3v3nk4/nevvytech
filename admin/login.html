@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NEVVY TECH · Panel de Administración</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #0a1628; }
@@ -29,6 +29,7 @@
             transition: border-color 0.3s;
         }
         .input-dark:focus { border-color: #3b82f6; }
+        .input-dark.error { border-color: #ef4444; }
         .btn-primary {
             background: linear-gradient(135deg, #1a56db, #3b82f6);
             padding: 12px 24px;
@@ -39,13 +40,42 @@
             cursor: pointer;
             width: 100%;
             transition: all 0.3s;
+            position: relative;
         }
         .btn-primary:hover {
             transform: scale(1.02);
             box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
         }
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
         .logo-text { font-size: 28px; font-weight: 900; color: white; }
         .logo-text span { color: #3b82f6; }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .password-toggle:hover { color: #94a3b8; }
+        .input-wrapper { position: relative; }
     </style>
 </head>
 <body>
@@ -57,17 +87,24 @@
             </div>
             
             <div id="mensajeError" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg mb-4"></div>
+            <div id="mensajeExito" class="hidden bg-green-500/10 border border-green-500/20 text-green-400 text-sm px-4 py-3 rounded-lg mb-4"></div>
             
             <form id="formLogin" onsubmit="return iniciarSesion(event)">
                 <div class="mb-4">
                     <label class="block text-sm text-slate-400 mb-1">Email o Usuario</label>
-                    <input type="text" id="usuario" class="input-dark" placeholder="admin@nevvytech.cl" required />
+                    <input type="text" id="usuario" class="input-dark" placeholder="admin@nevvytech.cl" value="admin@nevvytech.cl" required />
                 </div>
                 <div class="mb-6">
                     <label class="block text-sm text-slate-400 mb-1">Contraseña</label>
-                    <input type="password" id="password" class="input-dark" placeholder="••••••••" required />
+                    <div class="input-wrapper">
+                        <input type="password" id="password" class="input-dark" placeholder="••••••••" value="nevvy2026" required />
+                        <i class="fas fa-eye password-toggle" id="togglePassword" onclick="togglePassword()"></i>
+                    </div>
                 </div>
-                <button type="submit" class="btn-primary">Ingresar</button>
+                <button type="submit" class="btn-primary" id="btnLogin">
+                    <span id="btnText">Ingresar</span>
+                    <span id="btnSpinner" class="spinner" style="display:none;"></span>
+                </button>
             </form>
             
             <p class="text-center text-slate-500 text-xs mt-4">
@@ -78,14 +115,12 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN DE SUPABASE
+        // CONFIGURACIÓN API
         // ============================================
-        const SUPABASE_URL = 'https://fjsbinbakqxgsjrleqgi.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const API_URL = 'https://nevvytech-api.onrender.com/api';
 
         // ============================================
-        // INICIAR SESIÓN CON SUPABASE
+        // INICIAR SESIÓN CON API
         // ============================================
         async function iniciarSesion(event) {
             event.preventDefault();
@@ -93,62 +128,135 @@
             const usuario = document.getElementById('usuario').value.trim();
             const password = document.getElementById('password').value.trim();
             const errorDiv = document.getElementById('mensajeError');
+            const btnLogin = document.getElementById('btnLogin');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
 
+            // Limpiar mensajes
+            errorDiv.classList.add('hidden');
+            document.getElementById('mensajeExito').classList.add('hidden');
+            document.getElementById('usuario').classList.remove('error');
+            document.getElementById('password').classList.remove('error');
+
+            // Validaciones
             if (!usuario || !password) {
                 errorDiv.textContent = '❌ Completa todos los campos';
                 errorDiv.classList.remove('hidden');
-                setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+                if (!usuario) document.getElementById('usuario').classList.add('error');
+                if (!password) document.getElementById('password').classList.add('error');
                 return false;
             }
 
+            if (password.length < 6) {
+                errorDiv.textContent = '❌ La contraseña debe tener al menos 6 caracteres';
+                errorDiv.classList.remove('hidden');
+                document.getElementById('password').classList.add('error');
+                return false;
+            }
+
+            // Mostrar loading
+            btnLogin.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline-block';
+
             try {
-                // Buscar usuario en la tabla 'usuarios' de Supabase
-                const { data: usuarios, error } = await supabaseClient
-                    .from('usuarios')
-                    .select('*')
-                    .or(`email.eq.${usuario},nombre.eq.${usuario}`)
-                    .eq('password', password);
+                // Buscar usuario en la API
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        email: usuario, 
+                        password: password 
+                    })
+                });
 
-                if (error) {
-                    throw new Error(error.message);
-                }
+                const data = await response.json();
 
-                if (!usuarios || usuarios.length === 0) {
-                    errorDiv.textContent = '❌ Usuario o contraseña incorrectos';
+                // Ocultar loading
+                btnLogin.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+
+                if (data.success && data.user) {
+                    // Guardar sesión en localStorage
+                    localStorage.setItem('nevvy_session', 'true');
+                    localStorage.setItem('nevvy_usuario', data.user.nombre || data.user.email);
+                    localStorage.setItem('nevvy_user_email', data.user.email);
+                    localStorage.setItem('nevvy_user_id', data.user.id);
+                    localStorage.setItem('nevvy_user_rol', data.user.rol || 'usuario');
+                    localStorage.setItem('nevvy_token', data.token || '');
+
+                    // Mostrar mensaje de éxito
+                    const exitoDiv = document.getElementById('mensajeExito');
+                    exitoDiv.textContent = '✅ ¡Bienvenido! Redirigiendo...';
+                    exitoDiv.classList.remove('hidden');
+
+                    // Redirigir al dashboard
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+
+                } else {
+                    errorDiv.textContent = '❌ ' + (data.message || 'Usuario o contraseña incorrectos');
                     errorDiv.classList.remove('hidden');
-                    setTimeout(() => errorDiv.classList.add('hidden'), 3000);
-                    return false;
+                    document.getElementById('password').value = '';
+                    document.getElementById('password').focus();
                 }
-
-                // Usuario autenticado correctamente
-                const user = usuarios[0];
-                
-                // Guardar sesión en localStorage
-                localStorage.setItem('nevvy_session', 'true');
-                localStorage.setItem('nevvy_usuario', user.nombre || user.email);
-                localStorage.setItem('nevvy_user_id', user.id);
-                localStorage.setItem('nevvy_user_rol', user.rol || 'usuario');
-
-                // Redirigir al dashboard
-                window.location.href = 'dashboard.html';
 
             } catch (error) {
-                errorDiv.textContent = '❌ Error al conectar: ' + error.message;
+                // Ocultar loading
+                btnLogin.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+
+                console.error('Error:', error);
+                errorDiv.textContent = '❌ Error de conexión con el servidor';
                 errorDiv.classList.remove('hidden');
-                setTimeout(() => errorDiv.classList.add('hidden'), 3000);
             }
 
             return false;
         }
 
         // ============================================
-        // SI YA ESTÁ LOGUEADO, REDIRIGIR AL DASHBOARD
+        // TOGGLE PASSWORD
+        // ============================================
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePassword');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // ============================================
+        // VERIFICAR SESIÓN AL CARGAR
         // ============================================
         (function verificarSesion() {
             if (localStorage.getItem('nevvy_session') === 'true') {
                 window.location.href = 'dashboard.html';
             }
         })();
+
+        // ============================================
+        // ENTER KEY SUPPORT
+        // ============================================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const active = document.activeElement;
+                if (active.id === 'usuario' || active.id === 'password') {
+                    document.getElementById('formLogin').dispatchEvent(new Event('submit'));
+                }
+            }
+        });
     </script>
 </body>
 </html>
