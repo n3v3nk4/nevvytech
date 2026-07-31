@@ -147,22 +147,15 @@
                 return false;
             }
 
-            if (password.length < 6) {
-                errorDiv.textContent = '❌ La contraseña debe tener al menos 6 caracteres';
-                errorDiv.classList.remove('hidden');
-                document.getElementById('password').classList.add('error');
-                return false;
-            }
-
             // Mostrar loading
             btnLogin.disabled = true;
             btnText.style.display = 'none';
             btnSpinner.style.display = 'inline-block';
 
             try {
-                // Buscar usuario en la API
+                // 🔑 HACER PETICIÓN POST AL ENDPOINT /api/login
                 const response = await fetch(`${API_URL}/login`, {
-                    method: 'POST',
+                    method: 'POST',  // <-- IMPORTANTE: USAR POST
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -180,13 +173,12 @@
                 btnSpinner.style.display = 'none';
 
                 if (data.success && data.user) {
-                    // Guardar sesión en localStorage
+                    // Guardar sesión
                     localStorage.setItem('nevvy_session', 'true');
                     localStorage.setItem('nevvy_usuario', data.user.nombre || data.user.email);
                     localStorage.setItem('nevvy_user_email', data.user.email);
                     localStorage.setItem('nevvy_user_id', data.user.id);
                     localStorage.setItem('nevvy_user_rol', data.user.rol || 'usuario');
-                    localStorage.setItem('nevvy_token', data.token || '');
 
                     // Mostrar mensaje de éxito
                     const exitoDiv = document.getElementById('mensajeExito');
