@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NEVVY TECH · Ventas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -151,11 +150,9 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN DE SUPABASE
+        // CONFIGURACIÓN - API FLASK
         // ============================================
-        const SUPABASE_URL = 'https://fjsbinbakqxgsjrleqgi.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const API_URL = '/api';
 
         // ============================================
         // VERIFICAR SESIÓN
@@ -176,8 +173,10 @@
         // ============================================
         function actualizarReloj() {
             const ahora = new Date();
-            document.getElementById('fechaHora').textContent = 
-                ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            const fechaHora = document.getElementById('fechaHora');
+            if (fechaHora) {
+                fechaHora.textContent = ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            }
             setTimeout(actualizarReloj, 1000);
         }
         actualizarReloj();
@@ -189,8 +188,8 @@
             document.getElementById('modalVenta').style.display = 'flex';
             if (venta) {
                 document.getElementById('modalTitulo').textContent = '✏️ Editar Venta';
-                document.getElementById('clienteVenta').value = venta.clientes?.nombre || venta.cliente || '';
-                document.getElementById('telefonoVenta').value = venta.clientes?.telefono || '';
+                document.getElementById('clienteVenta').value = venta.cliente_nombre || '';
+                document.getElementById('telefonoVenta').value = venta.cliente_telefono || '';
                 document.getElementById('productoVenta').value = venta.producto || '';
                 document.getElementById('montoVenta').value = venta.monto || '';
                 document.getElementById('estadoVenta').value = venta.estado || 'Pendiente';
@@ -213,7 +212,7 @@
         }
 
         // ============================================
-        // GUARDAR VENTA (CREAR O ACTUALIZAR)
+        // GUARDAR VENTA
         // ============================================
         async function guardarVenta() {
             const cliente = document.getElementById('clienteVenta').value.trim();
@@ -230,132 +229,102 @@
             }
 
             try {
-                if (editId) {
-                    // ========== EDITAR ==========
-                    const { data: ventaActual } = await supabaseClient
-                        .from('ventas')
-                        .select('cliente_id')
-                        .eq('id', editId)
-                        .single();
-
-                    if (ventaActual) {
-                        await supabaseClient
-                            .from('clientes')
-                            .update({ nombre: cliente, telefono: telefono })
-                            .eq('id', ventaActual.cliente_id);
-                    }
-
-                    const { error } = await supabaseClient
-                        .from('ventas')
-                        .update({
-                            producto: producto,
-                            monto: monto,
-                            estado: estado,
-                            forma_pago: pago
-                        })
-                        .eq('id', editId);
-
-                    if (error) throw new Error(error.message);
-                    alert('✅ Venta actualizada correctamente');
-
+                const url = editId ? `${API_URL}/ventas/${editId}` : `${API_URL}/ventas`;
+                const method = editId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cliente: cliente,
+                        telefono: telefono,
+                        producto: producto,
+                        monto: monto,
+                        estado: estado,
+                        forma_pago: pago
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(editId ? '✅ Venta actualizada' : '✅ Venta guardada');
+                    cerrarModal();
+                    cargarVentas();
                 } else {
-                    // ========== CREAR ==========
-                    const { data: clienteData, error: clienteError } = await supabaseClient
-                        .from('clientes')
-                        .insert({ nombre: cliente, telefono: telefono })
-                        .select();
-
-                    if (clienteError) throw new Error(clienteError.message);
-                    const clienteId = clienteData[0].id;
-
-                    const numero = `ORD-${new Date().getTime()}`;
-                    const { error: ventaError } = await supabaseClient
-                        .from('ventas')
-                        .insert({
-                            numero_orden: numero,
-                            cliente_id: clienteId,
-                            producto: producto,
-                            monto: monto,
-                            estado: estado,
-                            forma_pago: pago,
-                            fecha: new Date().toISOString()
-                        });
-
-                    if (ventaError) throw new Error(ventaError.message);
-                    alert('✅ Venta guardada correctamente');
+                    alert('❌ Error: ' + data.message);
                 }
-
-                cerrarModal();
-                cargarVentas();
-
             } catch (error) {
-                alert('❌ Error: ' + error.message);
+                alert('❌ Error de conexión: ' + error.message);
             }
         }
 
         // ============================================
-        // CARGAR VENTAS DESDE SUPABASE
+        // CARGAR VENTAS
         // ============================================
         async function cargarVentas() {
-            const { data: ventas, error } = await supabaseClient
-                .from('ventas')
-                .select('*, clientes(nombre, telefono)')
-                .order('fecha', { ascending: false })
-                .limit(50);
+            try {
+                const response = await fetch(`${API_URL}/ventas`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                const tbody = document.getElementById('cuerpoTabla');
+                const totalRegistros = document.getElementById('totalRegistros');
+                
+                if (!data.data || data.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay ventas registradas</td></tr>';
+                    if (totalRegistros) totalRegistros.textContent = '0 registros';
+                    return;
+                }
 
-            if (error) {
-                alert('❌ Error al cargar ventas: ' + error.message);
-                return;
+                const estadoClass = {
+                    'Pendiente': 'tag-pendiente',
+                    'Completada': 'tag-completada',
+                    'Entregada': 'tag-entregada'
+                };
+
+                tbody.innerHTML = data.data.map(v => `
+                    <tr>
+                        <td><span class="text-xs font-mono text-white">${v.numero_orden}</span></td>
+                        <td>${v.cliente_nombre || 'N/A'}</td>
+                        <td>${v.producto}</td>
+                        <td><span class="text-green-400 font-medium">$${v.monto.toLocaleString('es-CL')}</span></td>
+                        <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${v.estado}</span></td>
+                        <td class="text-xs text-slate-400">${new Date(v.fecha).toLocaleDateString('es-CL')}</td>
+                        <td>
+                            <button onclick="editarVenta(${v.id})" class="btn-sm btn-edit" title="Editar">✏️</button>
+                            <button onclick="eliminarVenta(${v.id})" class="btn-sm btn-delete" title="Eliminar">🗑️</button>
+                            <button onclick="enviarWhatsApp('${v.cliente_nombre || ''}', '${v.numero_orden}', ${v.monto})" class="btn-sm btn-whatsapp" title="WhatsApp">💬</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                if (totalRegistros) totalRegistros.textContent = `${data.data.length} registros`;
+            } catch (error) {
+                console.error('Error al cargar ventas:', error);
+                const tbody = document.getElementById('cuerpoTabla');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-red-400 py-6">Error al cargar ventas: ${error.message}</td></tr>`;
+                }
             }
-
-            const tbody = document.getElementById('cuerpoTabla');
-            if (ventas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay ventas registradas</td></tr>';
-                document.getElementById('totalRegistros').textContent = '0 registros';
-                return;
-            }
-
-            const estadoClass = {
-                'Pendiente': 'tag-pendiente',
-                'Completada': 'tag-completada',
-                'Entregada': 'tag-entregada'
-            };
-
-            tbody.innerHTML = ventas.map(v => `
-                <tr>
-                    <td><span class="text-xs font-mono text-white">${v.numero_orden}</span></td>
-                    <td>${v.clientes?.nombre || 'N/A'}</td>
-                    <td>${v.producto}</td>
-                    <td><span class="text-green-400 font-medium">$${v.monto.toLocaleString('es-CL')}</span></td>
-                    <td><span class="tag ${estadoClass[v.estado] || 'tag-pendiente'}">${v.estado}</span></td>
-                    <td class="text-xs text-slate-400">${new Date(v.fecha).toLocaleDateString('es-CL')}</td>
-                    <td>
-                        <button onclick="editarVenta('${v.id}')" class="btn-sm btn-edit" title="Editar">✏️</button>
-                        <button onclick="eliminarVenta('${v.id}')" class="btn-sm btn-delete" title="Eliminar">🗑️</button>
-                        <button onclick="enviarWhatsApp('${v.clientes?.nombre || ''}', '${v.numero_orden}', ${v.monto})" class="btn-sm btn-whatsapp" title="WhatsApp">💬</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            document.getElementById('totalRegistros').textContent = `${ventas.length} registros`;
         }
 
         // ============================================
         // EDITAR VENTA
         // ============================================
         async function editarVenta(id) {
-            const { data: venta, error } = await supabaseClient
-                .from('ventas')
-                .select('*, clientes(nombre, telefono)')
-                .eq('id', id)
-                .single();
-
-            if (error) {
-                alert('❌ Error al cargar la venta: ' + error.message);
-                return;
+            try {
+                const response = await fetch(`${API_URL}/ventas/${id}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    abrirModal(data.data);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
             }
-
-            abrirModal(venta);
         }
 
         // ============================================
@@ -365,26 +334,26 @@
             if (!confirm('¿Eliminar esta venta?')) return;
 
             try {
-                const { error } = await supabaseClient
-                    .from('ventas')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw new Error(error.message);
-
-                alert('✅ Venta eliminada');
-                cargarVentas();
-
+                const response = await fetch(`${API_URL}/ventas/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Venta eliminada');
+                    cargarVentas();
+                }
             } catch (error) {
                 alert('❌ Error: ' + error.message);
             }
         }
 
         // ============================================
-        // ENVIAR POR WHATSAPP
+        // WHATSAPP
         // ============================================
         function enviarWhatsApp(cliente, numero, total) {
-            const mensaje = `Hola ${cliente}, tu orden ${numero} está lista. Total: $${total.toLocaleString('es-CL')}. ¡Gracias por confiar en NEVVY TECH!`;
+            const mensaje = `Hola ${cliente}, tu orden ${numero} está lista. Total: $${total.toLocaleString('es-CL')}. ¡Gracias!`;
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
         }
@@ -393,35 +362,37 @@
         // EXPORTAR REPORTE
         // ============================================
         async function exportarReporte() {
-            const { data: ventas, error } = await supabaseClient
-                .from('ventas')
-                .select('*, clientes(nombre)')
-                .order('fecha', { ascending: false });
+            try {
+                const response = await fetch(`${API_URL}/ventas`);
+                const data = await response.json();
+                
+                if (!data.data || data.data.length === 0) {
+                    alert('❌ No hay ventas para exportar');
+                    return;
+                }
 
-            if (error) {
-                alert('❌ Error al exportar: ' + error.message);
-                return;
+                let texto = 'REPORTE DE VENTAS\n';
+                texto += '='.repeat(50) + '\n';
+                texto += `Generado: ${new Date().toLocaleString('es-CL')}\n\n`;
+                texto += 'N° Orden | Cliente | Producto | Total | Estado | Fecha\n';
+                texto += '-'.repeat(60) + '\n';
+                
+                data.data.forEach(v => {
+                    texto += `${v.numero_orden} | ${v.cliente_nombre || 'N/A'} | ${v.producto} | $${v.monto} | ${v.estado} | ${new Date(v.fecha).toLocaleDateString('es-CL')}\n`;
+                });
+                
+                const total = data.data.reduce((sum, v) => sum + v.monto, 0);
+                texto += '\n' + '='.repeat(50) + '\n';
+                texto += `TOTAL INGRESOS: $${total.toLocaleString('es-CL')}\n`;
+                
+                const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `reporte_ventas_${new Date().toISOString().slice(0,10)}.txt`;
+                link.click();
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
             }
-
-            let texto = 'REPORTE DE VENTAS\n';
-            texto += '='.repeat(50) + '\n';
-            texto += `Generado: ${new Date().toLocaleString('es-CL')}\n\n`;
-            texto += 'N° Orden | Cliente | Producto | Total | Estado | Fecha\n';
-            texto += '-'.repeat(60) + '\n';
-            
-            ventas.forEach(v => {
-                texto += `${v.numero_orden} | ${v.clientes?.nombre || 'N/A'} | ${v.producto} | $${v.monto} | ${v.estado} | ${new Date(v.fecha).toLocaleDateString('es-CL')}\n`;
-            });
-            
-            const total = ventas.reduce((sum, v) => sum + v.monto, 0);
-            texto += '\n' + '='.repeat(50) + '\n';
-            texto += `TOTAL INGRESOS: $${total.toLocaleString('es-CL')}\n`;
-            
-            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `reporte_ventas_${new Date().toISOString().slice(0,10)}.txt`;
-            link.click();
         }
 
         // ============================================
