@@ -23,7 +23,33 @@ def inicio():
     return '🚀 NEVVY TECH API funcionando correctamente'
 
 # ============================================
-# RUTAS DE LA API
+# RUTA PARA CREAR USUARIO ADMIN
+# ============================================
+@app.route('/crear-admin')
+def crear_admin():
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Verificar si la tabla usuarios existe
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'")
+        if not cursor.fetchone():
+            return '❌ La tabla usuarios no existe. Ejecuta database.py primero.', 500
+        
+        # Insertar admin
+        cursor.execute('''
+            INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
+            VALUES (?, ?, ?, ?)
+        ''', ('admin@nevvytech.cl', 'nevvy2026', 'Administrador', 'admin'))
+        
+        conn.commit()
+        conn.close()
+        return '✅ Usuario admin creado correctamente<br>📧 Email: admin@nevvytech.cl<br>🔑 Contraseña: nevvy2026'
+    except Exception as e:
+        return f'❌ Error: {e}', 500
+
+# ============================================
+# RUTAS DE LA API (VENTAS, CLIENTES, COTIZACIONES)
 # ============================================
 
 # --- VENTAS ---
