@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NEVVY TECH · Cotizaciones</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -145,11 +144,9 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN DE SUPABASE
+        // CONFIGURACIÓN - API FLASK
         // ============================================
-        const SUPABASE_URL = 'https://fjsbinbakqxgsjrleqgi.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const API_URL = 'https://nevvytech-api.onrender.com/api';
 
         // ============================================
         // VERIFICAR SESIÓN
@@ -170,8 +167,10 @@
         // ============================================
         function actualizarReloj() {
             const ahora = new Date();
-            document.getElementById('fechaHora').textContent = 
-                ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            const fechaHora = document.getElementById('fechaHora');
+            if (fechaHora) {
+                fechaHora.textContent = ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            }
             setTimeout(actualizarReloj, 1000);
         }
         actualizarReloj();
@@ -183,8 +182,8 @@
             document.getElementById('modalCotizacion').style.display = 'flex';
             if (cotizacion) {
                 document.getElementById('modalTitulo').textContent = '✏️ Editar Cotización';
-                document.getElementById('clienteCot').value = cotizacion.clientes?.nombre || '';
-                document.getElementById('telefonoCot').value = cotizacion.clientes?.telefono || '';
+                document.getElementById('clienteCot').value = cotizacion.cliente_nombre || '';
+                document.getElementById('telefonoCot').value = cotizacion.cliente_telefono || '';
                 document.getElementById('serviciosCot').value = cotizacion.servicios || '';
                 document.getElementById('totalCot').value = cotizacion.total || '';
                 document.getElementById('estadoCot').value = cotizacion.estado || 'Pendiente';
@@ -221,69 +220,32 @@
             }
 
             try {
-                if (editId) {
-                    // ========== EDITAR ==========
-                    // 1. Obtener cotización actual
-                    const { data: cotActual } = await supabaseClient
-                        .from('cotizaciones')
-                        .select('cliente_id')
-                        .eq('id', editId)
-                        .single();
-
-                    if (cotActual) {
-                        // 2. Actualizar cliente
-                        await supabaseClient
-                            .from('clientes')
-                            .update({ nombre: cliente, telefono: telefono })
-                            .eq('id', cotActual.cliente_id);
-                    }
-
-                    // 3. Actualizar cotización
-                    const { error } = await supabaseClient
-                        .from('cotizaciones')
-                        .update({
-                            servicios: servicios,
-                            total: total,
-                            estado: estado
-                        })
-                        .eq('id', editId);
-
-                    if (error) throw new Error(error.message);
-                    alert('✅ Cotización actualizada correctamente');
-
+                const url = editId ? `${API_URL}/cotizaciones/${editId}` : `${API_URL}/cotizaciones`;
+                const method = editId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cliente: cliente,
+                        telefono: telefono,
+                        servicios: servicios,
+                        total: total,
+                        estado: estado
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(editId ? '✅ Cotización actualizada' : '✅ Cotización guardada');
+                    cerrarModal();
+                    cargarCotizaciones();
                 } else {
-                    // ========== CREAR ==========
-                    // 1. Guardar cliente
-                    const { data: clienteData, error: clienteError } = await supabaseClient
-                        .from('clientes')
-                        .insert({ nombre: cliente, telefono: telefono })
-                        .select();
-
-                    if (clienteError) throw new Error(clienteError.message);
-                    const clienteId = clienteData[0].id;
-
-                    // 2. Guardar cotización
-                    const numero = `COT-${new Date().getTime()}`;
-                    const { error: cotError } = await supabaseClient
-                        .from('cotizaciones')
-                        .insert({
-                            numero_cotizacion: numero,
-                            cliente_id: clienteId,
-                            servicios: servicios,
-                            total: total,
-                            estado: estado,
-                            fecha: new Date().toISOString()
-                        });
-
-                    if (cotError) throw new Error(cotError.message);
-                    alert('✅ Cotización guardada correctamente');
+                    alert('❌ Error: ' + data.message);
                 }
-
-                cerrarModal();
-                cargarCotizaciones();
-
             } catch (error) {
-                alert('❌ Error: ' + error.message);
+                alert('❌ Error de conexión: ' + error.message);
             }
         }
 
@@ -291,66 +253,69 @@
         // CARGAR COTIZACIONES
         // ============================================
         async function cargarCotizaciones() {
-            const { data: cotizaciones, error } = await supabaseClient
-                .from('cotizaciones')
-                .select('*, clientes(nombre, telefono)')
-                .order('fecha', { ascending: false })
-                .limit(50);
+            try {
+                const response = await fetch(`${API_URL}/cotizaciones`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                const tbody = document.getElementById('cuerpoTabla');
+                const totalRegistros = document.getElementById('totalRegistros');
+                
+                if (!data.data || data.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay cotizaciones registradas</td></tr>';
+                    if (totalRegistros) totalRegistros.textContent = '0 registros';
+                    return;
+                }
 
-            if (error) {
-                alert('❌ Error al cargar cotizaciones: ' + error.message);
-                return;
+                const estadoClass = {
+                    'Pendiente': 'tag-pendiente',
+                    'Enviada': 'tag-enviada',
+                    'Aceptada': 'tag-aceptada',
+                    'Rechazada': 'tag-rechazada'
+                };
+
+                tbody.innerHTML = data.data.map(c => `
+                    <tr>
+                        <td><span class="text-xs font-mono text-white">${c.numero_cotizacion}</span></td>
+                        <td>${c.cliente_nombre || 'N/A'}</td>
+                        <td>${c.servicios}</td>
+                        <td><span class="text-green-400 font-medium">$${c.total.toLocaleString('es-CL')}</span></td>
+                        <td><span class="tag ${estadoClass[c.estado] || 'tag-pendiente'}">${c.estado}</span></td>
+                        <td class="text-xs text-slate-400">${new Date(c.fecha).toLocaleDateString('es-CL')}</td>
+                        <td>
+                            <button onclick="editarCotizacion(${c.id})" class="btn-sm btn-edit" title="Editar">✏️</button>
+                            <button onclick="eliminarCotizacion(${c.id})" class="btn-sm btn-delete" title="Eliminar">🗑️</button>
+                            <button onclick="enviarWhatsApp('${c.cliente_nombre || ''}', '${c.numero_cotizacion}', ${c.total})" class="btn-sm btn-whatsapp" title="WhatsApp">💬</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                if (totalRegistros) totalRegistros.textContent = `${data.data.length} registros`;
+            } catch (error) {
+                console.error('Error al cargar cotizaciones:', error);
+                const tbody = document.getElementById('cuerpoTabla');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-red-400 py-6">Error al cargar cotizaciones: ${error.message}</td></tr>`;
+                }
             }
-
-            const tbody = document.getElementById('cuerpoTabla');
-            if (cotizaciones.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">No hay cotizaciones registradas</td></tr>';
-                document.getElementById('totalRegistros').textContent = '0 registros';
-                return;
-            }
-
-            const estadoClass = {
-                'Pendiente': 'tag-pendiente',
-                'Enviada': 'tag-enviada',
-                'Aceptada': 'tag-aceptada',
-                'Rechazada': 'tag-rechazada'
-            };
-
-            tbody.innerHTML = cotizaciones.map(c => `
-                <tr>
-                    <td><span class="text-xs font-mono text-white">${c.numero_cotizacion}</span></td>
-                    <td>${c.clientes?.nombre || 'N/A'}</td>
-                    <td>${c.servicios}</td>
-                    <td><span class="text-green-400 font-medium">$${c.total.toLocaleString('es-CL')}</span></td>
-                    <td><span class="tag ${estadoClass[c.estado] || 'tag-pendiente'}">${c.estado}</span></td>
-                    <td class="text-xs text-slate-400">${new Date(c.fecha).toLocaleDateString('es-CL')}</td>
-                    <td>
-                        <button onclick="editarCotizacion('${c.id}')" class="btn-sm btn-edit" title="Editar">✏️</button>
-                        <button onclick="eliminarCotizacion('${c.id}')" class="btn-sm btn-delete" title="Eliminar">🗑️</button>
-                        <button onclick="enviarWhatsApp('${c.clientes?.nombre || ''}', '${c.numero_cotizacion}', ${c.total})" class="btn-sm btn-whatsapp" title="WhatsApp">💬</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            document.getElementById('totalRegistros').textContent = `${cotizaciones.length} registros`;
         }
 
         // ============================================
         // EDITAR COTIZACIÓN
         // ============================================
         async function editarCotizacion(id) {
-            const { data: cotizacion, error } = await supabaseClient
-                .from('cotizaciones')
-                .select('*, clientes(nombre, telefono)')
-                .eq('id', id)
-                .single();
-
-            if (error) {
-                alert('❌ Error al cargar la cotización: ' + error.message);
-                return;
+            try {
+                const response = await fetch(`${API_URL}/cotizaciones/${id}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    abrirModal(data.data);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
             }
-
-            abrirModal(cotizacion);
         }
 
         // ============================================
@@ -360,16 +325,16 @@
             if (!confirm('¿Eliminar esta cotización?')) return;
 
             try {
-                const { error } = await supabaseClient
-                    .from('cotizaciones')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw new Error(error.message);
-
-                alert('✅ Cotización eliminada');
-                cargarCotizaciones();
-
+                const response = await fetch(`${API_URL}/cotizaciones/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Cotización eliminada');
+                    cargarCotizaciones();
+                }
             } catch (error) {
                 alert('❌ Error: ' + error.message);
             }
@@ -388,31 +353,33 @@
         // EXPORTAR REPORTE
         // ============================================
         async function exportarReporte() {
-            const { data: cotizaciones, error } = await supabaseClient
-                .from('cotizaciones')
-                .select('*, clientes(nombre)')
-                .order('fecha', { ascending: false });
+            try {
+                const response = await fetch(`${API_URL}/cotizaciones`);
+                const data = await response.json();
+                
+                if (!data.data || data.data.length === 0) {
+                    alert('❌ No hay cotizaciones para exportar');
+                    return;
+                }
 
-            if (error) {
-                alert('❌ Error al exportar: ' + error.message);
-                return;
+                let texto = 'REPORTE DE COTIZACIONES\n';
+                texto += '='.repeat(50) + '\n';
+                texto += `Generado: ${new Date().toLocaleString('es-CL')}\n\n`;
+                texto += 'N° Cotización | Cliente | Servicios | Total | Estado | Fecha\n';
+                texto += '-'.repeat(70) + '\n';
+                
+                data.data.forEach(c => {
+                    texto += `${c.numero_cotizacion} | ${c.cliente_nombre || 'N/A'} | ${c.servicios} | $${c.total} | ${c.estado} | ${new Date(c.fecha).toLocaleDateString('es-CL')}\n`;
+                });
+                
+                const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `reporte_cotizaciones_${new Date().toISOString().slice(0,10)}.txt`;
+                link.click();
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
             }
-
-            let texto = 'REPORTE DE COTIZACIONES\n';
-            texto += '='.repeat(50) + '\n';
-            texto += `Generado: ${new Date().toLocaleString('es-CL')}\n\n`;
-            texto += 'N° Cotización | Cliente | Servicios | Total | Estado | Fecha\n';
-            texto += '-'.repeat(70) + '\n';
-            
-            cotizaciones.forEach(c => {
-                texto += `${c.numero_cotizacion} | ${c.clientes?.nombre || 'N/A'} | ${c.servicios} | $${c.total} | ${c.estado} | ${new Date(c.fecha).toLocaleDateString('es-CL')}\n`;
-            });
-            
-            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `reporte_cotizaciones_${new Date().toISOString().slice(0,10)}.txt`;
-            link.click();
         }
 
         // ============================================

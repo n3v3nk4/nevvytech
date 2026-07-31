@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NEVVY TECH · Clientes</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -127,11 +126,9 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN DE SUPABASE
+        // CONFIGURACIÓN - API FLASK
         // ============================================
-        const SUPABASE_URL = 'https://fjsbinbakqxgsjrleqgi.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_bFsHSyyAVDKS_yPggL076A_qL4zWw_A';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const API_URL = 'https://nevvytech-api.onrender.com/api';
 
         // ============================================
         // VERIFICAR SESIÓN
@@ -152,8 +149,10 @@
         // ============================================
         function actualizarReloj() {
             const ahora = new Date();
-            document.getElementById('fechaHora').textContent = 
-                ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            const fechaHora = document.getElementById('fechaHora');
+            if (fechaHora) {
+                fechaHora.textContent = ahora.toLocaleDateString('es-CL') + ' ' + ahora.toLocaleTimeString('es-CL');
+            }
             setTimeout(actualizarReloj, 1000);
         }
         actualizarReloj();
@@ -200,32 +199,26 @@
             }
 
             try {
-                const data = { nombre, telefono, email, rut };
-
-                if (editId) {
-                    // Actualizar
-                    const { error } = await supabaseClient
-                        .from('clientes')
-                        .update(data)
-                        .eq('id', editId);
-
-                    if (error) throw new Error(error.message);
-                    alert('✅ Cliente actualizado correctamente');
+                const url = editId ? `${API_URL}/clientes/${editId}` : `${API_URL}/clientes`;
+                const method = editId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, telefono, email, rut })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(editId ? '✅ Cliente actualizado' : '✅ Cliente guardado');
+                    cerrarModal();
+                    cargarClientes();
                 } else {
-                    // Crear
-                    const { error } = await supabaseClient
-                        .from('clientes')
-                        .insert([data]);
-
-                    if (error) throw new Error(error.message);
-                    alert('✅ Cliente guardado correctamente');
+                    alert('❌ Error: ' + data.message);
                 }
-
-                cerrarModal();
-                cargarClientes();
-
             } catch (error) {
-                alert('❌ Error: ' + error.message);
+                alert('❌ Error de conexión: ' + error.message);
             }
         }
 
@@ -233,58 +226,61 @@
         // CARGAR CLIENTES
         // ============================================
         async function cargarClientes() {
-            const { data: clientes, error } = await supabaseClient
-                .from('clientes')
-                .select('*')
-                .order('id', { ascending: false })
-                .limit(50);
+            try {
+                const response = await fetch(`${API_URL}/clientes`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                const tbody = document.getElementById('cuerpoTabla');
+                const totalRegistros = document.getElementById('totalRegistros');
+                
+                if (!data.data || data.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-slate-500 py-6">No hay clientes registrados</td></tr>';
+                    if (totalRegistros) totalRegistros.textContent = '0 registros';
+                    return;
+                }
 
-            if (error) {
-                alert('❌ Error al cargar clientes: ' + error.message);
-                return;
+                tbody.innerHTML = data.data.map(c => `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.nombre}</td>
+                        <td>${c.telefono}</td>
+                        <td>${c.email || '-'}</td>
+                        <td>${c.rut || '-'}</td>
+                        <td>
+                            <button onclick="editarCliente(${c.id})" class="btn-sm btn-edit" title="Editar">✏️</button>
+                            <button onclick="eliminarCliente(${c.id})" class="btn-sm btn-delete" title="Eliminar">🗑️</button>
+                            <button onclick="enviarWhatsApp('${c.telefono}', '${c.nombre}')" class="btn-sm btn-whatsapp" title="WhatsApp">💬</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                if (totalRegistros) totalRegistros.textContent = `${data.data.length} registros`;
+            } catch (error) {
+                console.error('Error al cargar clientes:', error);
+                const tbody = document.getElementById('cuerpoTabla');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-400 py-6">Error al cargar clientes: ${error.message}</td></tr>`;
+                }
             }
-
-            const tbody = document.getElementById('cuerpoTabla');
-            if (clientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-slate-500 py-6">No hay clientes registrados</td></tr>';
-                document.getElementById('totalRegistros').textContent = '0 registros';
-                return;
-            }
-
-            tbody.innerHTML = clientes.map(c => `
-                <tr>
-                    <td>${c.id}</td>
-                    <td>${c.nombre}</td>
-                    <td>${c.telefono}</td>
-                    <td>${c.email || '-'}</td>
-                    <td>${c.rut || '-'}</td>
-                    <td>
-                        <button onclick="editarCliente('${c.id}')" class="btn-sm btn-edit" title="Editar">✏️</button>
-                        <button onclick="eliminarCliente('${c.id}')" class="btn-sm btn-delete" title="Eliminar">🗑️</button>
-                        <button onclick="enviarWhatsApp('${c.telefono}', '${c.nombre}')" class="btn-sm btn-whatsapp" title="WhatsApp">💬</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            document.getElementById('totalRegistros').textContent = `${clientes.length} registros`;
         }
 
         // ============================================
         // EDITAR CLIENTE
         // ============================================
         async function editarCliente(id) {
-            const { data: cliente, error } = await supabaseClient
-                .from('clientes')
-                .select('*')
-                .eq('id', id)
-                .single();
-
-            if (error) {
-                alert('❌ Error al cargar el cliente: ' + error.message);
-                return;
+            try {
+                const response = await fetch(`${API_URL}/clientes/${id}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    abrirModal(data.data);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
             }
-
-            abrirModal(cliente);
         }
 
         // ============================================
@@ -294,16 +290,16 @@
             if (!confirm('¿Eliminar este cliente?')) return;
 
             try {
-                const { error } = await supabaseClient
-                    .from('clientes')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw new Error(error.message);
-
-                alert('✅ Cliente eliminado');
-                cargarClientes();
-
+                const response = await fetch(`${API_URL}/clientes/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Cliente eliminado');
+                    cargarClientes();
+                }
             } catch (error) {
                 alert('❌ Error: ' + error.message);
             }
