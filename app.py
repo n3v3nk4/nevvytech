@@ -3,10 +3,80 @@ from flask_cors import CORS
 import sqlite3
 from datetime import datetime
 import os
-import hashlib  # Para encriptar contraseñas (opcional pero recomendado)
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
+
+# ============================================
+# INICIALIZAR BASE DE DATOS
+# ============================================
+def init_db():
+    db_path = 'taller.db'
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # Crear tabla usuarios
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            nombre TEXT NOT NULL,
+            rol TEXT DEFAULT 'usuario',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Crear tabla clientes
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            telefono TEXT,
+            email TEXT,
+            rut TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Crear tabla ventas
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ventas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_orden TEXT UNIQUE NOT NULL,
+            cliente_id INTEGER,
+            producto TEXT NOT NULL,
+            monto REAL NOT NULL,
+            estado TEXT DEFAULT 'Pendiente',
+            forma_pago TEXT DEFAULT 'Efectivo',
+            fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+        )
+    ''')
+    
+    # Crear tabla cotizaciones
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cotizaciones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_cotizacion TEXT UNIQUE NOT NULL,
+            cliente_id INTEGER,
+            servicios TEXT,
+            total REAL NOT NULL,
+            estado TEXT DEFAULT 'Pendiente',
+            fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+        )
+    ''')
+    
+    # Insertar usuario admin si no existe
+    cursor.execute('''
+        INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
+        VALUES (?, ?, ?, ?)
+    ''', ('admin@nevvytech.cl', 'nevvy2026', 'Administrador', 'admin'))
+    
+    conn.commit()
+    conn.close()
+    print("✅ Base de datos inicializada correctamente")
 
 # ============================================
 # CONEXIÓN A SQLITE
@@ -24,7 +94,7 @@ def inicio():
     return '🚀 NEVVY TECH API funcionando correctamente'
 
 # ============================================
-# 🔐 ENDPOINT DE LOGIN (NUEVO)
+# 🔐 ENDPOINT DE LOGIN
 # ============================================
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -33,18 +103,15 @@ def login():
         email = data.get('email', '').strip()
         password = data.get('password', '').strip()
         
-        # Validar campos
         if not email or not password:
             return jsonify({
                 'success': False,
                 'message': 'Email y contraseña son requeridos'
             }), 400
         
-        # Conectar a la base de datos
         conn = get_db()
         cursor = conn.cursor()
         
-        # Buscar usuario por email
         cursor.execute('''
             SELECT id, email, nombre, password, rol 
             FROM usuarios 
@@ -54,25 +121,18 @@ def login():
         user = cursor.fetchone()
         conn.close()
         
-        # Verificar si existe el usuario
         if not user:
             return jsonify({
                 'success': False,
                 'message': 'Usuario no encontrado'
             }), 401
         
-        # Verificar contraseña (sin hash - texto plano)
         if user['password'] != password:
             return jsonify({
                 'success': False,
                 'message': 'Contraseña incorrecta'
             }), 401
         
-        # Si quieres usar hash (RECOMENDADO), descomenta esto:
-        # if not hashlib.sha256(password.encode()).hexdigest() == user['password']:
-        #     return jsonify({'success': False, 'message': 'Contraseña incorrecta'}), 401
-        
-        # Login exitoso - devolver datos del usuario
         return jsonify({
             'success': True,
             'message': 'Login exitoso',
@@ -82,7 +142,7 @@ def login():
                 'nombre': user['nombre'],
                 'rol': user['rol']
             },
-            'token': f"token_{user['id']}_{int(datetime.now().timestamp())}"  # Token simple
+            'token': f"token_{user['id']}_{int(datetime.now().timestamp())}"
         })
         
     except Exception as e:
@@ -101,13 +161,10 @@ def crear_admin():
         conn = get_db()
         cursor = conn.cursor()
         
-        # Verificar si la tabla usuarios existe
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'")
         if not cursor.fetchone():
             return '❌ La tabla usuarios no existe. Ejecuta database.py primero.', 500
         
-        # Insertar admin (con hash si usas hashing)
-        # Si usas hash, cambia 'nevvy2026' por hashlib.sha256('nevvy2026'.encode()).hexdigest()
         cursor.execute('''
             INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
             VALUES (?, ?, ?, ?)
@@ -338,4 +395,6 @@ def eliminar_cotizacion(id):
 # INICIO
 # ============================================
 if __name__ == '__main__':
+    # Inicializar base de datos antes de iniciar
+    init_db()
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
