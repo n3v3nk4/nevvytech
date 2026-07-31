@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime
@@ -15,31 +15,27 @@ def init_db():
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    # Crear tabla usuarios
+    # Crear todas las tablas
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             nombre TEXT NOT NULL,
-            rol TEXT DEFAULT 'usuario',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            rol TEXT DEFAULT 'usuario'
         )
     ''')
     
-    # Crear tabla clientes
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS clientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
             telefono TEXT,
             email TEXT,
-            rut TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            rut TEXT
         )
     ''')
     
-    # Crear tabla ventas
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ventas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +50,6 @@ def init_db():
         )
     ''')
     
-    # Crear tabla cotizaciones
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS cotizaciones (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,7 +63,7 @@ def init_db():
         )
     ''')
     
-    # Insertar usuario admin si no existe
+    # Insertar admin
     cursor.execute('''
         INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
         VALUES (?, ?, ?, ?)
@@ -76,7 +71,7 @@ def init_db():
     
     conn.commit()
     conn.close()
-    print("✅ Base de datos inicializada correctamente")
+    print("✅ Base de datos inicializada")
 
 # ============================================
 # CONEXIÓN A SQLITE
@@ -87,15 +82,13 @@ def get_db():
     return conn
 
 # ============================================
-# RUTA DE BIENVENIDA
+# RUTAS
 # ============================================
 @app.route('/')
 def inicio():
     return '🚀 NEVVY TECH API funcionando correctamente'
 
-# ============================================
-# 🔐 ENDPOINT DE LOGIN
-# ============================================
+# 🔐 ENDPOINT DE LOGIN - ¡ESTA ES LA RUTA QUE FALTA!
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
@@ -111,12 +104,11 @@ def login():
         
         conn = get_db()
         cursor = conn.cursor()
-        
         cursor.execute('''
             SELECT id, email, nombre, password, rol 
             FROM usuarios 
-            WHERE email = ? OR nombre = ?
-        ''', (email, email))
+            WHERE email = ?
+        ''', (email,))
         
         user = cursor.fetchone()
         conn.close()
@@ -141,35 +133,25 @@ def login():
                 'email': user['email'],
                 'nombre': user['nombre'],
                 'rol': user['rol']
-            },
-            'token': f"token_{user['id']}_{int(datetime.now().timestamp())}"
+            }
         })
         
     except Exception as e:
-        print(f"Error en login: {e}")
         return jsonify({
             'success': False,
-            'message': f'Error en el servidor: {str(e)}'
+            'message': f'Error: {str(e)}'
         }), 500
 
-# ============================================
-# RUTA PARA CREAR USUARIO ADMIN
-# ============================================
+# Ruta para crear admin (verificación)
 @app.route('/crear-admin')
 def crear_admin():
     try:
         conn = get_db()
         cursor = conn.cursor()
-        
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'")
-        if not cursor.fetchone():
-            return '❌ La tabla usuarios no existe. Ejecuta database.py primero.', 500
-        
         cursor.execute('''
             INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
             VALUES (?, ?, ?, ?)
         ''', ('admin@nevvytech.cl', 'nevvy2026', 'Administrador', 'admin'))
-        
         conn.commit()
         conn.close()
         return '✅ Usuario admin creado correctamente<br>📧 Email: admin@nevvytech.cl<br>🔑 Contraseña: nevvy2026'
@@ -177,7 +159,7 @@ def crear_admin():
         return f'❌ Error: {e}', 500
 
 # ============================================
-# RUTAS DE LA API (VENTAS, CLIENTES, COTIZACIONES)
+# API REST (VENTAS, CLIENTES, COTIZACIONES)
 # ============================================
 
 # --- VENTAS ---
@@ -395,6 +377,5 @@ def eliminar_cotizacion(id):
 # INICIO
 # ============================================
 if __name__ == '__main__':
-    # Inicializar base de datos antes de iniciar
     init_db()
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
