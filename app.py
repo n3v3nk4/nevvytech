@@ -16,19 +16,11 @@ def get_db():
     return conn
 
 # ============================================
-# RUTAS PARA PÁGINAS HTML
+# RUTA DE BIENVENIDA
 # ============================================
-
 @app.route('/')
 def inicio():
-    return send_from_directory('.', 'index.html')
-
-@app.route('/<path:path>')
-def servir_archivos(path):
-    if os.path.exists(path):
-        return send_from_directory('.', path)
-    else:
-        return f"Archivo no encontrado: {path}", 404
+    return '🚀 NEVVY TECH API funcionando correctamente'
 
 # ============================================
 # RUTAS DE LA API
