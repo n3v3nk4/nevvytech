@@ -76,6 +76,16 @@
         }
         .password-toggle:hover { color: #94a3b8; }
         .input-wrapper { position: relative; }
+        .mensaje-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        .mensaje-exito {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            color: #34d399;
+        }
     </style>
 </head>
 <body>
@@ -86,10 +96,9 @@
                 <p class="text-slate-400 text-sm mt-2">Panel de Administración</p>
             </div>
             
-            <div id="mensajeError" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg mb-4"></div>
-            <div id="mensajeExito" class="hidden bg-green-500/10 border border-green-500/20 text-green-400 text-sm px-4 py-3 rounded-lg mb-4"></div>
+            <div id="mensajeInfo" class="hidden px-4 py-3 rounded-lg mb-4 text-sm"></div>
             
-            <form id="formLogin" onsubmit="return iniciarSesion(event)">
+            <form id="formLogin">
                 <div class="mb-4">
                     <label class="block text-sm text-slate-400 mb-1">Email o Usuario</label>
                     <input type="text" id="usuario" class="input-dark" placeholder="admin@nevvytech.cl" value="admin@nevvytech.cl" required />
@@ -115,36 +124,63 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN API
+        // CONFIGURACIÓN
         // ============================================
         const API_URL = 'https://nevvytech-api.onrender.com/api';
 
         // ============================================
-        // INICIAR SESIÓN CON API
+        // MOSTRAR MENSAJE
         // ============================================
-        async function iniciarSesion(event) {
-            event.preventDefault();
+        function mostrarMensaje(texto, tipo) {
+            const div = document.getElementById('mensajeInfo');
+            div.textContent = texto;
+            div.className = 'px-4 py-3 rounded-lg mb-4 text-sm ' + 
+                (tipo === 'error' ? 'mensaje-error' : 'mensaje-exito');
+            div.classList.remove('hidden');
+            
+            setTimeout(() => div.classList.add('hidden'), 5000);
+        }
+
+        // ============================================
+        // TOGGLE PASSWORD
+        // ============================================
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePassword');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // ============================================
+        // INICIAR SESIÓN
+        // ============================================
+        document.getElementById('formLogin').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
             const usuario = document.getElementById('usuario').value.trim();
             const password = document.getElementById('password').value.trim();
-            const errorDiv = document.getElementById('mensajeError');
             const btnLogin = document.getElementById('btnLogin');
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
 
-            // Limpiar mensajes
-            errorDiv.classList.add('hidden');
-            document.getElementById('mensajeExito').classList.add('hidden');
+            // Limpiar errores
             document.getElementById('usuario').classList.remove('error');
             document.getElementById('password').classList.remove('error');
 
-            // Validaciones
+            // Validar campos
             if (!usuario || !password) {
-                errorDiv.textContent = '❌ Completa todos los campos';
-                errorDiv.classList.remove('hidden');
+                mostrarMensaje('❌ Completa todos los campos', 'error');
                 if (!usuario) document.getElementById('usuario').classList.add('error');
                 if (!password) document.getElementById('password').classList.add('error');
-                return false;
+                return;
             }
 
             // Mostrar loading
@@ -153,9 +189,8 @@
             btnSpinner.style.display = 'inline-block';
 
             try {
-                // 🔑 HACER PETICIÓN POST AL ENDPOINT /api/login
                 const response = await fetch(`${API_URL}/login`, {
-                    method: 'POST',  // <-- IMPORTANTE: USAR POST
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -180,10 +215,7 @@
                     localStorage.setItem('nevvy_user_id', data.user.id);
                     localStorage.setItem('nevvy_user_rol', data.user.rol || 'usuario');
 
-                    // Mostrar mensaje de éxito
-                    const exitoDiv = document.getElementById('mensajeExito');
-                    exitoDiv.textContent = '✅ ¡Bienvenido! Redirigiendo...';
-                    exitoDiv.classList.remove('hidden');
+                    mostrarMensaje('✅ ¡Bienvenido! Redirigiendo...', 'exito');
 
                     // Redirigir al dashboard
                     setTimeout(() => {
@@ -191,43 +223,20 @@
                     }, 1000);
 
                 } else {
-                    errorDiv.textContent = '❌ ' + (data.message || 'Usuario o contraseña incorrectos');
-                    errorDiv.classList.remove('hidden');
+                    mostrarMensaje('❌ ' + (data.message || 'Usuario o contraseña incorrectos'), 'error');
                     document.getElementById('password').value = '';
                     document.getElementById('password').focus();
                 }
 
             } catch (error) {
-                // Ocultar loading
                 btnLogin.disabled = false;
                 btnText.style.display = 'inline';
                 btnSpinner.style.display = 'none';
-
+                
                 console.error('Error:', error);
-                errorDiv.textContent = '❌ Error de conexión con el servidor';
-                errorDiv.classList.remove('hidden');
+                mostrarMensaje('❌ Error de conexión con el servidor', 'error');
             }
-
-            return false;
-        }
-
-        // ============================================
-        // TOGGLE PASSWORD
-        // ============================================
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('togglePassword');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
+        });
 
         // ============================================
         // VERIFICAR SESIÓN AL CARGAR
@@ -239,7 +248,7 @@
         })();
 
         // ============================================
-        // ENTER KEY SUPPORT
+        // ENTER KEY
         // ============================================
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
