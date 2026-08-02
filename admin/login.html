@@ -27,6 +27,7 @@
             width: 100%;
             outline: none;
             transition: border-color 0.3s;
+            box-sizing: border-box;
         }
         .input-dark:focus { border-color: #3b82f6; }
         .input-dark.error { border-color: #ef4444; }
@@ -86,6 +87,11 @@
             border: 1px solid rgba(52, 211, 153, 0.2);
             color: #34d399;
         }
+        .mensaje-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
     </style>
 </head>
 <body>
@@ -134,10 +140,19 @@
         function mostrarMensaje(texto, tipo) {
             const div = document.getElementById('mensajeInfo');
             div.textContent = texto;
-            div.className = 'px-4 py-3 rounded-lg mb-4 text-sm ' + 
-                (tipo === 'error' ? 'mensaje-error' : 'mensaje-exito');
+            div.className = 'px-4 py-3 rounded-lg mb-4 text-sm ';
+            
+            if (tipo === 'error') {
+                div.className += 'mensaje-error';
+            } else if (tipo === 'exito') {
+                div.className += 'mensaje-exito';
+            } else {
+                div.className += 'mensaje-info';
+            }
+            
             div.classList.remove('hidden');
             
+            // Ocultar después de 5 segundos
             setTimeout(() => div.classList.add('hidden'), 5000);
         }
 
@@ -160,7 +175,7 @@
         }
 
         // ============================================
-        // INICIAR SESIÓN
+        // INICIAR SESIÓN - VERSIÓN CORREGIDA
         // ============================================
         document.getElementById('formLogin').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -187,8 +202,11 @@
             btnLogin.disabled = true;
             btnText.style.display = 'none';
             btnSpinner.style.display = 'inline-block';
+            mostrarMensaje('⏳ Verificando credenciales...', 'info');
 
             try {
+                console.log('📤 Enviando login para:', usuario);
+                
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: {
@@ -200,7 +218,10 @@
                     })
                 });
 
+                console.log('📥 Status:', response.status);
+                
                 const data = await response.json();
+                console.log('📊 Respuesta:', data);
 
                 // Ocultar loading
                 btnLogin.disabled = false;
@@ -215,12 +236,12 @@
                     localStorage.setItem('nevvy_user_id', data.user.id);
                     localStorage.setItem('nevvy_user_rol', data.user.rol || 'usuario');
 
-                    mostrarMensaje('✅ ¡Bienvenido! Redirigiendo...', 'exito');
+                    mostrarMensaje('✅ ¡Bienvenido ' + data.user.nombre + '! Redirigiendo...', 'exito');
 
                     // Redirigir al dashboard
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
-                    }, 1000);
+                    }, 1500);
 
                 } else {
                     mostrarMensaje('❌ ' + (data.message || 'Usuario o contraseña incorrectos'), 'error');
@@ -229,12 +250,12 @@
                 }
 
             } catch (error) {
+                console.error('❌ Error:', error);
                 btnLogin.disabled = false;
                 btnText.style.display = 'inline';
                 btnSpinner.style.display = 'none';
                 
-                console.error('Error:', error);
-                mostrarMensaje('❌ Error de conexión con el servidor', 'error');
+                mostrarMensaje('❌ Error de conexión con el servidor: ' + error.message, 'error');
             }
         });
 
@@ -243,6 +264,7 @@
         // ============================================
         (function verificarSesion() {
             if (localStorage.getItem('nevvy_session') === 'true') {
+                console.log('🔐 Sesión activa, redirigiendo a dashboard');
                 window.location.href = 'dashboard.html';
             }
         })();
