@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime
 import os
+import hashlib
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
@@ -63,15 +64,15 @@ def init_db():
         )
     ''')
     
-    # Insertar admin
+    # Crear usuario admin (con email 'admin' para login simple)
     cursor.execute('''
-        INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
-        VALUES (?, ?, ?, ?)
-    ''', ('admin@nevvytech.cl', 'nevvy2026', 'Administrador', 'admin'))
+        INSERT OR REPLACE INTO usuarios (id, email, password, nombre, rol)
+        VALUES (1, 'admin', 'nevvy2026', 'Administrador', 'admin')
+    ''')
     
     conn.commit()
     conn.close()
-    print("✅ Base de datos inicializada")
+    print("✅ Base de datos inicializada con usuario admin")
 
 # ============================================
 # CONEXIÓN A SQLITE
@@ -88,13 +89,17 @@ def get_db():
 def inicio():
     return '🚀 NEVVY TECH API funcionando correctamente'
 
-# 🔐 ENDPOINT DE LOGIN - ¡ESTA ES LA RUTA QUE FALTA!
+# ============================================
+# 🔐 LOGIN - VERSIÓN MEJORADA
+# ============================================
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
         data = request.json
         email = data.get('email', '').strip()
         password = data.get('password', '').strip()
+        
+        print(f"🔍 Intento de login: {email}")
         
         if not email or not password:
             return jsonify({
@@ -104,27 +109,33 @@ def login():
         
         conn = get_db()
         cursor = conn.cursor()
+        
+        # Buscar por email O nombre (para permitir 'admin' o 'admin@nevvytech.cl')
         cursor.execute('''
             SELECT id, email, nombre, password, rol 
             FROM usuarios 
-            WHERE email = ?
-        ''', (email,))
+            WHERE email = ? OR nombre = ?
+        ''', (email, email))
         
         user = cursor.fetchone()
         conn.close()
         
         if not user:
+            print(f"❌ Usuario no encontrado: {email}")
             return jsonify({
                 'success': False,
                 'message': 'Usuario no encontrado'
             }), 401
         
+        # Verificar contraseña
         if user['password'] != password:
+            print(f"❌ Contraseña incorrecta para: {email}")
             return jsonify({
                 'success': False,
                 'message': 'Contraseña incorrecta'
             }), 401
         
+        print(f"✅ Login exitoso: {email}")
         return jsonify({
             'success': True,
             'message': 'Login exitoso',
@@ -137,32 +148,48 @@ def login():
         })
         
     except Exception as e:
+        print(f"❌ ERROR en login: {e}")
         return jsonify({
             'success': False,
             'message': f'Error: {str(e)}'
         }), 500
 
-# Ruta para crear admin (verificación)
+# ============================================
+# RUTAS DE DEBUG
+# ============================================
 @app.route('/crear-admin')
 def crear_admin():
     try:
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
-            VALUES (?, ?, ?, ?)
-        ''', ('admin@nevvytech.cl', 'nevvy2026', 'Administrador', 'admin'))
+            INSERT OR REPLACE INTO usuarios (id, email, password, nombre, rol)
+            VALUES (1, 'admin', 'nevvy2026', 'Administrador', 'admin')
+        ''')
         conn.commit()
         conn.close()
-        return '✅ Usuario admin creado correctamente<br>📧 Email: admin@nevvytech.cl<br>🔑 Contraseña: nevvy2026'
+        return '✅ Usuario admin creado correctamente<br>👤 Usuario: admin<br>🔑 Contraseña: nevvy2026'
     except Exception as e:
         return f'❌ Error: {e}', 500
 
-# ============================================
-# API REST (VENTAS, CLIENTES, COTIZACIONES)
-# ============================================
+@app.route('/ver-usuarios')
+def ver_usuarios():
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email, nombre, rol FROM usuarios")
+        usuarios = cursor.fetchall()
+        conn.close()
+        return jsonify({
+            'total': len(usuarios),
+            'usuarios': [dict(u) for u in usuarios]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-# --- VENTAS ---
+# ============================================
+# API REST - VENTAS
+# ============================================
 @app.route('/api/ventas', methods=['GET'])
 def obtener_ventas():
     conn = get_db()
@@ -241,7 +268,9 @@ def eliminar_venta(id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-# --- CLIENTES ---
+# ============================================
+# API REST - CLIENTES
+# ============================================
 @app.route('/api/clientes', methods=['GET'])
 def obtener_clientes():
     conn = get_db()
@@ -296,7 +325,9 @@ def eliminar_cliente(id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-# --- COTIZACIONES ---
+# ============================================
+# API REST - COTIZACIONES
+# ============================================
 @app.route('/api/cotizaciones', methods=['GET'])
 def obtener_cotizaciones():
     conn = get_db()
