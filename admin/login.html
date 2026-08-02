@@ -151,8 +151,6 @@
             }
             
             div.classList.remove('hidden');
-            
-            // Ocultar después de 5 segundos
             setTimeout(() => div.classList.add('hidden'), 5000);
         }
 
@@ -175,7 +173,7 @@
         }
 
         // ============================================
-        // INICIAR SESIÓN - VERSIÓN CORREGIDA
+        // INICIAR SESIÓN
         // ============================================
         document.getElementById('formLogin').addEventListener('submit', async function(e) {
             e.preventDefault();
