@@ -188,6 +188,56 @@ def ver_usuarios():
         return jsonify({'error': str(e)}), 500
 
 # ============================================
+# 🧹 RUTA DE LIMPIEZA (NUEVO)
+# ============================================
+@app.route('/limpiar-datos')
+def limpiar_datos():
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Eliminar todos los datos de las tablas
+        cursor.execute("DELETE FROM ventas")
+        cursor.execute("DELETE FROM cotizaciones")
+        cursor.execute("DELETE FROM clientes")
+        
+        # Reiniciar los contadores de ID
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='ventas'")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='cotizaciones'")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='clientes'")
+        
+        conn.commit()
+        conn.close()
+        return '''
+        <html>
+            <head>
+                <title>Datos limpiados</title>
+                <style>
+                    body { background: #0a1628; color: white; font-family: Arial; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+                    .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 500px; text-align: center; }
+                    h1 { color: #34d399; }
+                    p { color: #94a3b8; }
+                    a { color: #60a5fa; text-decoration: none; border: 1px solid #60a5fa; padding: 8px 16px; border-radius: 8px; display: inline-block; margin: 5px; }
+                    a:hover { background: rgba(96,165,250,0.1); }
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h1>✅ Datos eliminados</h1>
+                    <p>Todos los datos de prueba han sido eliminados correctamente.</p>
+                    <p>📊 Las tablas están vacías.</p>
+                    <br>
+                    <a href="/api/ventas">Ver ventas</a>
+                    <a href="/api/clientes">Ver clientes</a>
+                    <a href="/admin/dashboard.html">Dashboard</a>
+                </div>
+            </body>
+        </html>
+        '''
+    except Exception as e:
+        return f'❌ Error: {e}', 500
+
+# ============================================
 # API REST - VENTAS
 # ============================================
 @app.route('/api/ventas', methods=['GET'])
