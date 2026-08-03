@@ -37,6 +37,7 @@ def init_db():
         )
     ''')
     
+    # ✅ TABLA VENTAS ACTUALIZADA
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ventas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,6 +48,8 @@ def init_db():
             estado TEXT DEFAULT 'Pendiente',
             forma_pago TEXT DEFAULT 'Efectivo',
             fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+            fecha_emision DATE,
+            boleta_sii TEXT,
             FOREIGN KEY (cliente_id) REFERENCES clientes(id)
         )
     ''')
@@ -64,7 +67,7 @@ def init_db():
         )
     ''')
     
-    # Crear usuario admin (con email 'admin' para login simple)
+    # Crear usuario admin
     cursor.execute('''
         INSERT OR REPLACE INTO usuarios (id, email, password, nombre, rol)
         VALUES (1, 'admin', 'nevvy2026', 'Administrador', 'admin')
@@ -90,7 +93,7 @@ def inicio():
     return '🚀 NEVVY TECH API funcionando correctamente'
 
 # ============================================
-# 🔐 LOGIN - VERSIÓN MEJORADA
+# 🔐 LOGIN
 # ============================================
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -110,7 +113,6 @@ def login():
         conn = get_db()
         cursor = conn.cursor()
         
-        # Buscar por email O nombre (para permitir 'admin' o 'admin@nevvytech.cl')
         cursor.execute('''
             SELECT id, email, nombre, password, rol 
             FROM usuarios 
@@ -127,7 +129,6 @@ def login():
                 'message': 'Usuario no encontrado'
             }), 401
         
-        # Verificar contraseña
         if user['password'] != password:
             print(f"❌ Contraseña incorrecta para: {email}")
             return jsonify({
@@ -187,21 +188,16 @@ def ver_usuarios():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ============================================
-# 🧹 RUTA DE LIMPIEZA (NUEVO)
-# ============================================
 @app.route('/limpiar-datos')
 def limpiar_datos():
     try:
         conn = get_db()
         cursor = conn.cursor()
         
-        # Eliminar todos los datos de las tablas
         cursor.execute("DELETE FROM ventas")
         cursor.execute("DELETE FROM cotizaciones")
         cursor.execute("DELETE FROM clientes")
         
-        # Reiniciar los contadores de ID
         cursor.execute("DELETE FROM sqlite_sequence WHERE name='ventas'")
         cursor.execute("DELETE FROM sqlite_sequence WHERE name='cotizaciones'")
         cursor.execute("DELETE FROM sqlite_sequence WHERE name='clientes'")
@@ -230,6 +226,32 @@ def limpiar_datos():
                     <a href="/api/ventas">Ver ventas</a>
                     <a href="/api/clientes">Ver clientes</a>
                     <a href="/admin/dashboard.html">Dashboard</a>
+                </div>
+            </body>
+        </html>
+        '''
+    except Exception as e:
+        return f'❌ Error: {e}', 500
+
+@app.route('/reset-db')
+def reset_db():
+    try:
+        if os.path.exists('taller.db'):
+            os.remove('taller.db')
+            print("🗑️ Base de datos eliminada")
+        
+        init_db()
+        return '''
+        <html>
+            <head><title>Base de datos recreada</title></head>
+            <body style="background:#0a1628;color:white;font-family:Arial;padding:40px;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;">
+                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:40px;max-width:500px;text-align:center;">
+                    <h1 style="color:#34d399;">✅ Base de datos recreada</h1>
+                    <p style="color:#94a3b8;">La base de datos ha sido creada desde cero con los nuevos campos.</p>
+                    <p style="color:#94a3b8;">👤 Usuario: <strong style="color:white;">admin</strong></p>
+                    <p style="color:#94a3b8;">🔑 Contraseña: <strong style="color:white;">nevvy2026</strong></p>
+                    <br>
+                    <a href="/admin/login.html" style="color:#60a5fa;text-decoration:none;border:1px solid #60a5fa;padding:8px 16px;border-radius:8px;display:inline-block;">Ir al login</a>
                 </div>
             </body>
         </html>
@@ -269,10 +291,21 @@ def guardar_venta():
         
         numero_orden = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}"
         cursor.execute('''
-            INSERT INTO ventas (numero_orden, cliente_id, producto, monto, estado, forma_pago)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (numero_orden, cliente_id, data['producto'], data['monto'], 
-              data.get('estado', 'Pendiente'), data.get('forma_pago', 'Efectivo')))
+            INSERT INTO ventas (
+                numero_orden, cliente_id, producto, monto, 
+                estado, forma_pago, fecha_emision, boleta_sii
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            numero_orden, 
+            cliente_id, 
+            data['producto'], 
+            data['monto'], 
+            data.get('estado', 'Pendiente'),
+            data.get('forma_pago', 'Efectivo'),
+            data.get('fecha_emision', datetime.now().strftime('%Y-%m-%d')),
+            data.get('boleta_sii', '')
+        ))
         
         conn.commit()
         conn.close()
@@ -295,10 +328,18 @@ def actualizar_venta(id):
         
         cursor.execute('''
             UPDATE ventas
-            SET producto = ?, monto = ?, estado = ?, forma_pago = ?
+            SET producto = ?, monto = ?, estado = ?, forma_pago = ?,
+                fecha_emision = ?, boleta_sii = ?
             WHERE id = ?
-        ''', (data['producto'], data['monto'], data.get('estado', 'Pendiente'),
-              data.get('forma_pago', 'Efectivo'), id))
+        ''', (
+            data['producto'], 
+            data['monto'], 
+            data.get('estado', 'Pendiente'),
+            data.get('forma_pago', 'Efectivo'),
+            data.get('fecha_emision', datetime.now().strftime('%Y-%m-%d')),
+            data.get('boleta_sii', ''),
+            id
+        ))
         
         conn.commit()
         conn.close()
