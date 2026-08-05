@@ -155,7 +155,7 @@
         // ============================================
         // CONFIGURACIÓN
         // ============================================
-        const API_URL = 'https://nevvytech-api.onrender.com/api';
+        const API_URL = '/api';
 
         // ============================================
         // MOSTRAR MENSAJE
@@ -259,9 +259,9 @@
 
                     mostrarMensaje('✅ ¡Bienvenido ' + data.user.nombre + '! Redirigiendo...', 'exito');
 
-                    // Redirigir al dashboard
+                    // Redirigir al dashboard usando Flask
                     setTimeout(() => {
-                        window.location.href = 'dashboard.html';
+                        window.location.href = '/admin/';
                     }, 1500);
 
                 } else {
@@ -286,7 +286,7 @@
         (function verificarSesion() {
             if (localStorage.getItem('nevvy_session') === 'true') {
                 console.log('🔐 Sesión activa, redirigiendo a dashboard');
-                window.location.href = 'dashboard.html';
+                window.location.href = '/admin/';
             }
         })();
 

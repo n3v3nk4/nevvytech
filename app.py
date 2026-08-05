@@ -1,22 +1,20 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime
 import os
-import hashlib
 
-app = Flask(__name__, static_folder='.', static_url_path='')
+app = Flask(__name__) # ¡Quitamos static_folder! Flask lo maneja solo.
 CORS(app)
 
 # ============================================
-# INICIALIZAR BASE DE DATOS
+# INICIALIZAR BASE DE DATOS (Mantén tu código de DB aquí)
 # ============================================
 def init_db():
     db_path = 'taller.db'
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    # Crear todas las tablas
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +35,6 @@ def init_db():
         )
     ''')
     
-    # ✅ TABLA VENTAS ACTUALIZADA
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ventas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,433 +64,68 @@ def init_db():
         )
     ''')
     
-    # Crear usuario admin
+    # Insertar admin si no existe (contraseña en texto plano para pruebas)
     cursor.execute('''
-        INSERT OR REPLACE INTO usuarios (id, email, password, nombre, rol)
-        VALUES (1, 'admin', 'nevvy2026', 'Administrador', 'admin')
+        INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
+        VALUES ('admin', 'nevvy2026', 'Administrador', 'admin')
     ''')
     
     conn.commit()
     conn.close()
-    print("✅ Base de datos inicializada con usuario admin")
+    print("✅ Base de datos inicializada")
 
-# ============================================
-# CONEXIÓN A SQLITE
-# ============================================
 def get_db():
     conn = sqlite3.connect('taller.db')
     conn.row_factory = sqlite3.Row
     return conn
 
 # ============================================
-# RUTAS
+# RUTAS DE PÁGINAS WEB (FRONTEND)
 # ============================================
 @app.route('/')
 def inicio():
-    return '🚀 NEVVY TECH API funcionando correctamente'
+    return render_template('index.html')
+
+@app.route('/contacto')
+def contacto():
+    return render_template('contacto.html')
+
+@app.route('/cotizador')
+def cotizador():
+    return render_template('cotizador.html')
+
+# ESTA ES LA CLAVE PARA QUE FUNCIONE EL ADMIN:
+@app.route('/admin/')
+@app.route('/admin/<path:filename>')
+def admin_panel(filename='dashboard.html'):
+    # Si piden /admin/, carga dashboard.html. Si piden /admin/login.html, carga login.html
+    return render_template(f'admin/{filename}')
 
 # ============================================
-# 🔐 LOGIN
+# ARCHIVOS ESTÁTICOS (CSS, JS, IMÁGENES)
+# ============================================
+# Flask sirve automáticamente la carpeta /static/. 
+# No necesitas una ruta especial si pones tus archivos ahí.
+
+# ============================================
+# API REST (BACKEND)
 # ============================================
 @app.route('/api/login', methods=['POST'])
 def login():
-    try:
-        data = request.json
-        email = data.get('email', '').strip()
-        password = data.get('password', '').strip()
-        
-        print(f"🔍 Intento de login: {email}")
-        
-        if not email or not password:
-            return jsonify({
-                'success': False,
-                'message': 'Email y contraseña son requeridos'
-            }), 400
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            SELECT id, email, nombre, password, rol 
-            FROM usuarios 
-            WHERE email = ? OR nombre = ?
-        ''', (email, email))
-        
-        user = cursor.fetchone()
-        conn.close()
-        
-        if not user:
-            print(f"❌ Usuario no encontrado: {email}")
-            return jsonify({
-                'success': False,
-                'message': 'Usuario no encontrado'
-            }), 401
-        
-        if user['password'] != password:
-            print(f"❌ Contraseña incorrecta para: {email}")
-            return jsonify({
-                'success': False,
-                'message': 'Contraseña incorrecta'
-            }), 401
-        
-        print(f"✅ Login exitoso: {email}")
-        return jsonify({
-            'success': True,
-            'message': 'Login exitoso',
-            'user': {
-                'id': user['id'],
-                'email': user['email'],
-                'nombre': user['nombre'],
-                'rol': user['rol']
-            }
-        })
-        
-    except Exception as e:
-        print(f"❌ ERROR en login: {e}")
-        return jsonify({
-            'success': False,
-            'message': f'Error: {str(e)}'
-        }), 500
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
 
-# ============================================
-# RUTAS DE DEBUG
-# ============================================
-@app.route('/crear-admin')
-def crear_admin():
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT OR REPLACE INTO usuarios (id, email, password, nombre, rol)
-            VALUES (1, 'admin', 'nevvy2026', 'Administrador', 'admin')
-        ''')
-        conn.commit()
-        conn.close()
-        return '✅ Usuario admin creado correctamente<br>👤 Usuario: admin<br>🔑 Contraseña: nevvy2026'
-    except Exception as e:
-        return f'❌ Error: {e}', 500
-
-@app.route('/ver-usuarios')
-def ver_usuarios():
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, email, nombre, rol FROM usuarios")
-        usuarios = cursor.fetchall()
-        conn.close()
-        return jsonify({
-            'total': len(usuarios),
-            'usuarios': [dict(u) for u in usuarios]
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/limpiar-datos')
-def limpiar_datos():
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM ventas")
-        cursor.execute("DELETE FROM cotizaciones")
-        cursor.execute("DELETE FROM clientes")
-        
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='ventas'")
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='cotizaciones'")
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='clientes'")
-        
-        conn.commit()
-        conn.close()
-        return '''
-        <html>
-            <head>
-                <title>Datos limpiados</title>
-                <style>
-                    body { background: #0a1628; color: white; font-family: Arial; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-                    .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 500px; text-align: center; }
-                    h1 { color: #34d399; }
-                    p { color: #94a3b8; }
-                    a { color: #60a5fa; text-decoration: none; border: 1px solid #60a5fa; padding: 8px 16px; border-radius: 8px; display: inline-block; margin: 5px; }
-                    a:hover { background: rgba(96,165,250,0.1); }
-                </style>
-            </head>
-            <body>
-                <div class="card">
-                    <h1>✅ Datos eliminados</h1>
-                    <p>Todos los datos de prueba han sido eliminados correctamente.</p>
-                    <p>📊 Las tablas están vacías.</p>
-                    <br>
-                    <a href="/api/ventas">Ver ventas</a>
-                    <a href="/api/clientes">Ver clientes</a>
-                    <a href="/admin/dashboard.html">Dashboard</a>
-                </div>
-            </body>
-        </html>
-        '''
-    except Exception as e:
-        return f'❌ Error: {e}', 500
-
-@app.route('/reset-db')
-def reset_db():
-    try:
-        if os.path.exists('taller.db'):
-            os.remove('taller.db')
-            print("🗑️ Base de datos eliminada")
-        
-        init_db()
-        return '''
-        <html>
-            <head><title>Base de datos recreada</title></head>
-            <body style="background:#0a1628;color:white;font-family:Arial;padding:40px;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;">
-                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:40px;max-width:500px;text-align:center;">
-                    <h1 style="color:#34d399;">✅ Base de datos recreada</h1>
-                    <p style="color:#94a3b8;">La base de datos ha sido creada desde cero con los nuevos campos.</p>
-                    <p style="color:#94a3b8;">👤 Usuario: <strong style="color:white;">admin</strong></p>
-                    <p style="color:#94a3b8;">🔑 Contraseña: <strong style="color:white;">nevvy2026</strong></p>
-                    <br>
-                    <a href="/admin/login.html" style="color:#60a5fa;text-decoration:none;border:1px solid #60a5fa;padding:8px 16px;border-radius:8px;display:inline-block;">Ir al login</a>
-                </div>
-            </body>
-        </html>
-        '''
-    except Exception as e:
-        return f'❌ Error: {e}', 500
-
-# ============================================
-# API REST - VENTAS
-# ============================================
-@app.route('/api/ventas', methods=['GET'])
-def obtener_ventas():
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT v.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono
-        FROM ventas v
-        LEFT JOIN clientes c ON v.cliente_id = c.id
-        ORDER BY v.fecha DESC
-    ''')
-    ventas = cursor.fetchall()
+    user = conn.execute('SELECT id, email, nombre, rol FROM usuarios WHERE email = ? AND password = ?', (email, password)).fetchone()
     conn.close()
-    return jsonify({'success': True, 'data': [dict(row) for row in ventas]})
 
-@app.route('/api/ventas', methods=['POST'])
-def guardar_venta():
-    data = request.json
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO clientes (nombre, telefono)
-            VALUES (?, ?)
-        ''', (data['cliente'], data.get('telefono', '')))
-        cliente_id = cursor.lastrowid
-        
-        numero_orden = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        cursor.execute('''
-            INSERT INTO ventas (
-                numero_orden, cliente_id, producto, monto, 
-                estado, forma_pago, fecha_emision, boleta_sii
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            numero_orden, 
-            cliente_id, 
-            data['producto'], 
-            data['monto'], 
-            data.get('estado', 'Pendiente'),
-            data.get('forma_pago', 'Efectivo'),
-            data.get('fecha_emision', datetime.now().strftime('%Y-%m-%d')),
-            data.get('boleta_sii', '')
-        ))
-        
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': f'Venta {numero_orden} guardada'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+    if user:
+        return jsonify({'success': True, 'user': dict(user)})
+    return jsonify({'success': False, 'message': 'Credenciales incorrectas'}), 401
 
-@app.route('/api/ventas/<int:id>', methods=['PUT'])
-def actualizar_venta(id):
-    data = request.json
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE clientes
-            SET nombre = ?, telefono = ?
-            WHERE id = (SELECT cliente_id FROM ventas WHERE id = ?)
-        ''', (data['cliente'], data.get('telefono', ''), id))
-        
-        cursor.execute('''
-            UPDATE ventas
-            SET producto = ?, monto = ?, estado = ?, forma_pago = ?,
-                fecha_emision = ?, boleta_sii = ?
-            WHERE id = ?
-        ''', (
-            data['producto'], 
-            data['monto'], 
-            data.get('estado', 'Pendiente'),
-            data.get('forma_pago', 'Efectivo'),
-            data.get('fecha_emision', datetime.now().strftime('%Y-%m-%d')),
-            data.get('boleta_sii', ''),
-            id
-        ))
-        
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'Venta actualizada'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/ventas/<int:id>', methods=['DELETE'])
-def eliminar_venta(id):
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM ventas WHERE id = ?', (id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'Venta eliminada'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-# ============================================
-# API REST - CLIENTES
-# ============================================
-@app.route('/api/clientes', methods=['GET'])
-def obtener_clientes():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clientes ORDER BY id DESC')
-    clientes = cursor.fetchall()
-    conn.close()
-    return jsonify({'success': True, 'data': [dict(row) for row in clientes]})
-
-@app.route('/api/clientes', methods=['POST'])
-def guardar_cliente():
-    data = request.json
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO clientes (nombre, telefono, email, rut)
-            VALUES (?, ?, ?, ?)
-        ''', (data['nombre'], data['telefono'], data.get('email', ''), data.get('rut', '')))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'Cliente guardado'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/clientes/<int:id>', methods=['PUT'])
-def actualizar_cliente(id):
-    data = request.json
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE clientes
-            SET nombre = ?, telefono = ?, email = ?, rut = ?
-            WHERE id = ?
-        ''', (data['nombre'], data['telefono'], data.get('email', ''), data.get('rut', ''), id))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'Cliente actualizado'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/clientes/<int:id>', methods=['DELETE'])
-def eliminar_cliente(id):
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM clientes WHERE id = ?', (id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'Cliente eliminado'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-# ============================================
-# API REST - COTIZACIONES
-# ============================================
-@app.route('/api/cotizaciones', methods=['GET'])
-def obtener_cotizaciones():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT c.*, cl.nombre as cliente_nombre, cl.telefono as cliente_telefono
-        FROM cotizaciones c
-        LEFT JOIN clientes cl ON c.cliente_id = cl.id
-        ORDER BY c.fecha DESC
-    ''')
-    cotizaciones = cursor.fetchall()
-    conn.close()
-    return jsonify({'success': True, 'data': [dict(row) for row in cotizaciones]})
-
-@app.route('/api/cotizaciones', methods=['POST'])
-def guardar_cotizacion():
-    data = request.json
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO clientes (nombre, telefono)
-            VALUES (?, ?)
-        ''', (data['cliente'], data.get('telefono', '')))
-        cliente_id = cursor.lastrowid
-        
-        numero = f"COT-{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        cursor.execute('''
-            INSERT INTO cotizaciones (numero_cotizacion, cliente_id, servicios, total, estado)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (numero, cliente_id, data['servicios'], data['total'], data.get('estado', 'Pendiente')))
-        
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': f'Cotización {numero} guardada'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/cotizaciones/<int:id>', methods=['PUT'])
-def actualizar_cotizacion(id):
-    data = request.json
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE clientes
-            SET nombre = ?, telefono = ?
-            WHERE id = (SELECT cliente_id FROM cotizaciones WHERE id = ?)
-        ''', (data['cliente'], data.get('telefono', ''), id))
-        
-        cursor.execute('''
-            UPDATE cotizaciones
-            SET servicios = ?, total = ?, estado = ?
-            WHERE id = ?
-        ''', (data['servicios'], data['total'], data.get('estado', 'Pendiente'), id))
-        
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'Cotización actualizada'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/cotizaciones/<int:id>', methods=['DELETE'])
-def eliminar_cotizacion(id):
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM cotizaciones WHERE id = ?', (id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'Cotización eliminada'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+# ... AQUÍ PEGA TODAS TUS RUTAS DE API DE VENTAS, CLIENTES, COTIZACIONES ...
+# (Mantén exactamente el código que tenías para /api/ventas, /api/clientes, etc.)
 
 # ============================================
 # INICIO

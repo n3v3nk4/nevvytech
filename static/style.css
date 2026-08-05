@@ -1,0 +1,124 @@
+/* ============================================ */
+/* ESTILOS GENERALES */
+/* ============================================ */
+* { box-sizing: border-box; }
+body, html { margin: 0; padding: 0; background-color: #0a1628; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+
+/* Enlaces y textos */
+a { text-decoration: none; color: inherit; transition: 0.3s; }
+
+/* ============================================ */
+/* NAVBAR (Para la página pública index.html) */
+/* ============================================ */
+.navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: rgba(10, 22, 40, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 16px 0;
+    transition: 0.3s;
+}
+.navbar.scrolled { background: rgba(10, 22, 40, 0.95); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.navbar .container {
+    max-width: 1200px; margin: 0 auto; padding: 0 24px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.navbar .logo {
+    display: flex; align-items: center; gap: 6px;
+    font-weight: 800; font-size: 22px; color: white;
+}
+.navbar .logo span:last-child { color: #3b82f6; }
+.navbar .logo img { height: 32px; }
+
+.nav-links {
+    display: flex; gap: 24px; align-items: center;
+    font-size: 14px; font-weight: 500; color: #94a3b8;
+}
+.nav-links a:hover { color: white; }
+.nav-links .admin-link { color: #60a5fa; }
+.nav-links .admin-link:hover { color: #93c5fd; }
+
+.btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #1a56db, #3b82f6);
+    color: white; padding: 10px 20px; border-radius: 50px;
+    font-weight: 600; border: none; cursor: pointer; transition: 0.3s;
+}
+.btn-primary:hover { transform: scale(1.05); box-shadow: 0 4px 20px rgba(59,130,246,0.4); }
+.btn-primary.btn-sm { padding: 8px 16px; font-size: 14px; }
+.btn-primary.btn-lg { padding: 14px 32px; font-size: 16px; }
+
+.btn-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white; padding: 10px 20px; border-radius: 50px;
+    font-weight: 600; transition: 0.3s;
+}
+.btn-secondary:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
+.btn-secondary.btn-lg { padding: 14px 32px; font-size: 16px; }
+
+.menu-toggle { display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer; flex-direction: column; gap: 5px; padding: 4px; }
+.menu-toggle span { display: block; width: 24px; height: 2px; background: white; transition: 0.3s; }
+.menu-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.menu-toggle.open span:nth-child(2) { opacity: 0; }
+.menu-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+@media (max-width: 768px) {
+    .nav-links { display: none; flex-direction: column; position: absolute; top: 70px; left: 0; right: 0; background: #0f1a2e; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 16px; }
+    .nav-links.open { display: flex; }
+    .menu-toggle { display: flex; }
+}
+
+/* ============================================ */
+/* HERO & SECTIONS PÚBLICAS */
+/* ============================================ */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.section-header { text-align: center; margin-bottom: 48px; }
+.section-tag { display: inline-block; background: rgba(59,130,246,0.1); color: #60a5fa; padding: 4px 16px; border-radius: 50px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; }
+.section-header h2 { font-size: 36px; font-weight: 800; color: white; margin-bottom: 12px; }
+.gradient-text { background: linear-gradient(135deg, #7c3aed, #3b82f6, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+.hero { padding: 120px 0 80px; min-height: 80vh; display: flex; align-items: center; }
+.hero-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(59,130,246,0.1); color: #60a5fa; padding: 4px 16px; border-radius: 50px; font-size: 13px; font-weight: 500; margin-bottom: 20px; }
+.hero-tag .dot { width: 8px; height: 8px; background: #60a5fa; border-radius: 50%; display: inline-block; }
+.hero h1 { font-size: 48px; font-weight: 900; color: white; line-height: 1.1; margin-bottom: 24px; }
+.hero h1 .gradient-text { font-size: 52px; }
+.hero p { font-size: 18px; color: #94a3b8; max-width: 600px; line-height: 1.7; margin-bottom: 32px; }
+.hero-actions { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+.hero-stats { display: flex; gap: 32px; color: #94a3b8; font-size: 14px; font-weight: 500; }
+.hero-stats div { display: flex; align-items: center; gap: 6px; }
+
+.servicios, .beneficios, .proceso, .faq, .contacto, .cta-final { padding: 80px 0; }
+
+/* ============================================ */
+/* FOOTER PÚBLICO */
+/* ============================================ */
+.footer { background: #050a12; border-top: 1px solid rgba(255,255,255,0.05); padding: 48px 0 24px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 32px; }
+.footer-brand .logo { font-size: 20px; font-weight: 800; color: white; display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+.footer-brand .logo span:last-child { color: #3b82f6; }
+.footer-brand p { color: #94a3b8; font-size: 14px; line-height: 1.6; max-width: 300px; }
+.footer-social { display: flex; gap: 12px; margin-top: 16px; }
+.footer-social .social-link { color: #94a3b8; transition: 0.3s; }
+.footer-social .social-link:hover { color: #60a5fa; transform: translateY(-2px); }
+.footer-links h4 { color: white; font-weight: 700; margin-bottom: 16px; font-size: 14px; }
+.footer-links a { display: block; color: #94a3b8; font-size: 14px; margin-bottom: 8px; }
+.footer-links a:hover { color: white; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px; display: flex; justify-content: space-between; color: #475569; font-size: 12px; flex-wrap: wrap; gap: 8px; }
+
+@media (max-width: 768px) {
+    .footer-grid { grid-template-columns: 1fr; gap: 32px; text-align: center; }
+    .footer-brand p { max-width: 100%; }
+    .footer-social { justify-content: center; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+}
+
+/* ============================================ */
+/* ESTILOS DEL DASHBOARD (Backup de seguridad) */
+/* ============================================ */
+/* (El dashboard.html ya tiene su propio CSS incrustado, pero dejamos esto por si acaso) */
+.sidebar a { transition: all 0.3s; }
+.stat-card { transition: all 0.3s; }
+.btn-action { transition: all 0.3s; }
