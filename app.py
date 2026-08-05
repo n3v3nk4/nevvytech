@@ -4,11 +4,12 @@ import sqlite3
 from datetime import datetime
 import os
 
-app = Flask(__name__) # ¡Quitamos static_folder! Flask lo maneja solo.
+# ✅ ESTE ES EL CAMBIO QUE LO ARREGLA TODO:
+app = Flask(__name__, template_folder='.')
 CORS(app)
 
 # ============================================
-# INICIALIZAR BASE DE DATOS (Mantén tu código de DB aquí)
+# INICIALIZAR BASE DE DATOS
 # ============================================
 def init_db():
     db_path = 'taller.db'
@@ -64,7 +65,6 @@ def init_db():
         )
     ''')
     
-    # Insertar admin si no existe (contraseña en texto plano para pruebas)
     cursor.execute('''
         INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
         VALUES ('admin', 'nevvy2026', 'Administrador', 'admin')
@@ -94,18 +94,17 @@ def contacto():
 def cotizador():
     return render_template('cotizador.html')
 
-# ESTA ES LA CLAVE PARA QUE FUNCIONE EL ADMIN:
 @app.route('/admin/')
 @app.route('/admin/<path:filename>')
 def admin_panel(filename='dashboard.html'):
-    # Si piden /admin/, carga dashboard.html. Si piden /admin/login.html, carga login.html
     return render_template(f'admin/{filename}')
 
 # ============================================
-# ARCHIVOS ESTÁTICOS (CSS, JS, IMÁGENES)
+# ARCHIVOS ESTÁTICOS (CSS, JS, LOGO)
 # ============================================
-# Flask sirve automáticamente la carpeta /static/. 
-# No necesitas una ruta especial si pones tus archivos ahí.
+@app.route('/<path:filename>')
+def static_files(filename):
+    return send_from_directory('.', filename)
 
 # ============================================
 # API REST (BACKEND)
@@ -124,8 +123,100 @@ def login():
         return jsonify({'success': True, 'user': dict(user)})
     return jsonify({'success': False, 'message': 'Credenciales incorrectas'}), 401
 
-# ... AQUÍ PEGA TODAS TUS RUTAS DE API DE VENTAS, CLIENTES, COTIZACIONES ...
-# (Mantén exactamente el código que tenías para /api/ventas, /api/clientes, etc.)
+@app.route('/api/ventas', methods=['GET'])
+def obtener_ventas():
+    conn = get_db()
+    ventas = conn.execute('''
+        SELECT v.*, c.nombre as cliente_nombre
+        FROM ventas v 
+        LEFT JOIN clientes c ON v.cliente_id = c.id 
+        ORDER BY v.fecha DESC
+    ''').fetchall()
+    conn.close()
+    return jsonify({'success': True, 'data': [dict(v) for v in ventas]})
+
+@app.route('/api/ventas', methods=['POST'])
+def guardar_venta():
+    data = request.json
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO clientes (nombre, telefono) VALUES (?, ?)', (data['cliente'], data.get('telefono', '')))
+        cliente_id = cursor.lastrowid
+        
+        numero_orden = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        cursor.execute('''
+            INSERT INTO ventas (numero_orden, cliente_id, producto, monto, estado, forma_pago)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (numero_orden, cliente_id, data['producto'], data['monto'], data.get('estado', 'Pendiente'), data.get('forma_pago', 'Efectivo')))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': f'Venta {numero_orden} guardada'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/clientes', methods=['GET'])
+def obtener_clientes():
+    conn = get_db()
+    clientes = conn.execute('SELECT * FROM clientes ORDER BY id DESC').fetchall()
+    conn.close()
+    return jsonify({'success': True, 'data': [dict(c) for c in clientes]})
+
+@app.route('/api/clientes', methods=['POST'])
+def guardar_cliente():
+    data = request.json
+    try:
+        conn = get_db()
+        conn.execute('INSERT INTO clientes (nombre, telefono, email, rut) VALUES (?, ?, ?, ?)', 
+                     (data['nombre'], data['telefono'], data.get('email', ''), data.get('rut', '')))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Cliente guardado'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/cotizaciones', methods=['GET'])
+def obtener_cotizaciones():
+    conn = get_db()
+    cotizaciones = conn.execute('''
+        SELECT c.*, cl.nombre as cliente_nombre
+        FROM cotizaciones c 
+        LEFT JOIN clientes cl ON c.cliente_id = cl.id 
+        ORDER BY c.fecha DESC
+    ''').fetchall()
+    conn.close()
+    return jsonify({'success': True, 'data': [dict(c) for c in cotizaciones]})
+
+@app.route('/api/cotizaciones', methods=['POST'])
+def guardar_cotizacion():
+    data = request.json
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO clientes (nombre, telefono) VALUES (?, ?)', (data['cliente'], data.get('telefono', '')))
+        cliente_id = cursor.lastrowid
+        
+        numero = f"COT-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        cursor.execute('INSERT INTO cotizaciones (numero_cotizacion, cliente_id, servicios, total, estado) VALUES (?, ?, ?, ?, ?)',
+                       (numero, cliente_id, data['servicios'], data['total'], data.get('estado', 'Pendiente')))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': f'Cotización {numero} guardada'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/cotizaciones/<int:id>', methods=['DELETE'])
+def eliminar_cotizacion(id):
+    try:
+        conn = get_db()
+        conn.execute('DELETE FROM cotizaciones WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Cotización eliminada'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 # ============================================
 # INICIO
