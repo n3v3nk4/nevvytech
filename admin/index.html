@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - NEWVY TECH</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Iconos (FontAwesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="wrapper">
+        
+        <!-- SIDEBAR (Menú Lateral) -->
+        <aside class="sidebar">
+            <div class="logo">
+                NEWVY <span>TECH</span>
+                <span class="sub-logo">Panel de Control</span>
+            </div>
+
+            <nav class="menu">
+                <!-- Los enlaces se hacen con '#' y un atributo data-section -->
+                <a href="#dashboard" class="menu-item active" data-section="dashboard">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="#ventas" class="menu-item" data-section="ventas">
+                    <i class="fas fa-shopping-cart"></i> Ventas
+                </a>
+                <a href="#clientes" class="menu-item" data-section="clientes">
+                    <i class="fas fa-users"></i> Clientes
+                </a>
+                <a href="#cotizaciones" class="menu-item" data-section="cotizaciones">
+                    <i class="fas fa-file-invoice"></i> Cotizaciones
+                </a>
+            </nav>
+
+            <div class="user-info">
+                <div class="avatar">A</div>
+                <div>
+                    <div class="name">Administrador</div>
+                    <div class="role">admin</div>
+                    <a href="login.html" class="logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content">
+            <header class="header">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="header-right">
+                    <span id="current-date"></span>
+                    <i class="fas fa-sync-alt refresh-icon"></i>
+                </div>
+            </header>
+
+            <!-- SECCIÓN: DASHBOARD (Vista por defecto) -->
+            <section id="section-dashboard" class="content-section active-section">
+                <div class="cards-container">
+                    <div class="card">
+                        <h3>Ventas</h3>
+                        <div class="value">1</div>
+                    </div>
+                    <div class="card">
+                        <h3>Clientes</h3>
+                        <div class="value">1</div>
+                    </div>
+                    <div class="card">
+                        <h3>Cotizaciones</h3>
+                        <div class="value">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Ingresos</h3>
+                        <div class="value">$15.000</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Últimas Ventas</h3>
+                        <a href="#ventas" class="view-all">Ver todas <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nº ORDEN</th>
+                                <th>CLIENTE</th>
+                                <th>PRODUCTO</th>
+                                <th>MONTO</th>
+                                <th>ESTADO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ORD-202608083041023</td>
+                                <td>CRISTIAN</td>
+                                <td>Desbloqueo</td>
+                                <td>$15.000</td>
+                                <td><span class="badge badge-blue">Completado</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: VENTAS (Oculta inicialmente) -->
+            <section id="section-ventas" class="content-section">
+                <div class="actions-bar">
+                    <div class="search-box">
+                        <input type="text" placeholder="Buscar venta...">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+                    <button class="btn-primary"><i class="fas fa-plus"></i> Nueva Venta</button>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nº ORDEN</th>
+                                <th>CLIENTE</th>
+                                <th>PRODUCTO</th>
+                                <th>MONTO</th>
+                                <th>FORMA PAGO</th>
+                                <th>ESTADO</th>
+                                <th>FECHA</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ORD-202608083041023</td>
+                                <td>CRISTIAN</td>
+                                <td>Desbloqueo</td>
+                                <td>$15.000</td>
+                                <td>Efectivo</td>
+                                <td><span class="badge badge-blue">Completado</span></td>
+                                <td>3/8/2026</td>
+                                <td>
+                                    <button class="btn-edit"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-delete"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: CLIENTES (Oculta inicialmente) -->
+            <section id="section-clientes" class="content-section">
+                <h2 style="margin-bottom: 20px;">Listado de Clientes</h2>
+                <div class="table-container">
+                    <p style="color: #94a3b8;">Aquí iría la tabla de clientes...</p>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: COTIZACIONES (Oculta inicialmente) -->
+            <section id="section-cotizaciones" class="content-section">
+                <h2 style="margin-bottom: 20px;">Listado de Cotizaciones</h2>
+                <div class="table-container">
+                    <p style="color: #94a3b8;">Aquí iría la tabla de cotizaciones...</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- JAVASCRIPT (APP) -->
+    <script src="js/app.js"></script>
+</body>
+</html>
