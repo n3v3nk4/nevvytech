@@ -4,7 +4,7 @@ import sqlite3
 from datetime import datetime
 import os
 
-# ✅ ESTE ES EL CAMBIO QUE LO ARREGLA TODO:
+# ✅ CONFIGURACIÓN MÁS SIMPLE: Busca los HTML en la raíz
 app = Flask(__name__, template_folder='.')
 CORS(app)
 
@@ -94,10 +94,11 @@ def contacto():
 def cotizador():
     return render_template('cotizador.html')
 
+# ✅ RUTA DEL ADMIN (LA MÁS SIMPLE)
 @app.route('/admin/')
 @app.route('/admin/<path:filename>')
 def admin_panel(filename='login.html'):
-    return render_template(filename) 
+    return render_template(filename)
 
 # ============================================
 # ARCHIVOS ESTÁTICOS (CSS, JS, LOGO)
