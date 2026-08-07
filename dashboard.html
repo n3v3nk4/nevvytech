@@ -973,108 +973,114 @@
         // GUARDAR REGISTRO
         // ============================================
         async function guardarRegistro(event) {
-            event.preventDefault();
-            
-            const mensajeDiv = document.getElementById('modalMensaje');
-            mensajeDiv.classList.add('hidden');
+    event.preventDefault();
+    
+    const mensajeDiv = document.getElementById('modalMensaje');
+    mensajeDiv.classList.add('hidden');
 
-            try {
-                let endpoint = '';
-                let method = 'POST';
-                let datos = {};
-                const formData = new FormData();
+    try {
+        let endpoint = '';
+        let method = 'POST';
+        let datos = {};
+        const formData = new FormData();
 
-                if (entidadActual === 'ventas') {
-                    const cliente = document.getElementById('campo_cliente').value.trim();
-                    const telefono = document.getElementById('campo_telefono').value.trim();
-                    const producto = document.getElementById('campo_producto').value.trim();
-                    const monto = document.getElementById('campo_monto').value;
-                    const forma_pago = document.getElementById('campo_forma_pago').value;
-                    const fecha_emision = document.getElementById('campo_fecha_emision').value;
-                    const fileInput = document.getElementById('campo_boleta_sii');
-                    const estado = document.getElementById('campo_estado').value;
+        if (entidadActual === 'ventas') {
+            const cliente = document.getElementById('campo_cliente').value.trim();
+            const telefono = document.getElementById('campo_telefono').value.trim();
+            const producto = document.getElementById('campo_producto').value.trim();
+            const monto = document.getElementById('campo_monto').value;
+            const forma_pago = document.getElementById('campo_forma_pago').value;
+            const fecha_emision = document.getElementById('campo_fecha_emision').value;
+            const fileInput = document.getElementById('campo_boleta_sii');
+            const estado = document.getElementById('campo_estado').value;
 
-                    if (!cliente || !producto || !monto) {
-                        mostrarError('Completa todos los campos obligatorios');
-                        return false;
-                    }
-
-                    datos = { cliente, telefono, producto, monto, forma_pago, fecha_emision, estado };
-                    
-                    // Agregar datos al FormData
-                    for (const key in datos) {
-                        formData.append(key, datos[key]);
-                    }
-
-                    // Agregar archivo si existe
-                    if (fileInput && fileInput.files.length > 0) {
-                        formData.append('boleta', fileInput.files[0]);
-                    }
-
-                    endpoint = '/ventas';
-                } else if (entidadActual === 'clientes') {
-                    const nombre = document.getElementById('campo_nombre').value.trim();
-                    const telefono = document.getElementById('campo_telefono').value.trim();
-                    const email = document.getElementById('campo_email').value.trim();
-                    const rut = document.getElementById('campo_rut').value.trim();
-
-                    if (!nombre) {
-                        mostrarError('El nombre es obligatorio');
-                        return false;
-                    }
-
-                    datos = { nombre, telefono, email, rut };
-                    endpoint = '/clientes';
-                } else if (entidadActual === 'cotizaciones') {
-                    const cliente = document.getElementById('campo_cliente').value.trim();
-                    const telefono = document.getElementById('campo_telefono').value.trim();
-                    const servicios = document.getElementById('campo_servicios').value.trim();
-                    const total = document.getElementById('campo_total').value;
-                    const estado = document.getElementById('campo_estado').value;
-
-                    if (!cliente || !servicios || !total) {
-                        mostrarError('Completa todos los campos obligatorios');
-                        return false;
-                    }
-
-                    datos = { cliente, telefono, servicios, total, estado };
-                    endpoint = '/cotizaciones';
-                }
-
-                if (modoEdicion && idEdicion) {
-                    method = 'PUT';
-                    endpoint = `${endpoint}/${idEdicion}`;
-                }
-
-                let response;
-                if (entidadActual === 'ventas') {
-                    response = await fetch(`${API_URL}${endpoint}`, {
-                        method: method,
-                        body: formData
-                    });
-                } else {
-                    response = await fetch(`${API_URL}${endpoint}`, {
-                        method: method,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(datos)
-                    });
-                }
-
-                const result = await response.json();
-
-                if (result.success) {
-                    cerrarModal();
-                    recargarDatos();
-                } else {
-                    mostrarError(result.message || 'Error al guardar');
-                }
-
-            } catch (error) {
-                mostrarError('Error de conexión: ' + error.message);
+            if (!cliente || !producto || !monto) {
+                mostrarError('Completa todos los campos obligatorios');
+                return false;
             }
 
-            return false;
+            // ✅ Construimos el FormData con todos los campos
+            formData.append('cliente', cliente);
+            formData.append('telefono', telefono);
+            formData.append('producto', producto);
+            formData.append('monto', monto);
+            formData.append('forma_pago', forma_pago);
+            formData.append('fecha_emision', fecha_emision);
+            formData.append('estado', estado);
+
+            // ✅ Agregamos el PDF si existe
+            if (fileInput && fileInput.files.length > 0) {
+                formData.append('boleta', fileInput.files[0]);
+            }
+
+            endpoint = '/ventas';
+        } else if (entidadActual === 'clientes') {
+            const nombre = document.getElementById('campo_nombre').value.trim();
+            const telefono = document.getElementById('campo_telefono').value.trim();
+            const email = document.getElementById('campo_email').value.trim();
+            const rut = document.getElementById('campo_rut').value.trim();
+
+            if (!nombre) {
+                mostrarError('El nombre es obligatorio');
+                return false;
+            }
+
+            datos = { nombre, telefono, email, rut };
+            endpoint = '/clientes';
+        } else if (entidadActual === 'cotizaciones') {
+            const cliente = document.getElementById('campo_cliente').value.trim();
+            const telefono = document.getElementById('campo_telefono').value.trim();
+            const servicios = document.getElementById('campo_servicios').value.trim();
+            const total = document.getElementById('campo_total').value;
+            const estado = document.getElementById('campo_estado').value;
+
+            if (!cliente || !servicios || !total) {
+                mostrarError('Completa todos los campos obligatorios');
+                return false;
+            }
+
+            datos = { cliente, telefono, servicios, total, estado };
+            endpoint = '/cotizaciones';
         }
+
+        if (modoEdicion && idEdicion) {
+            method = 'PUT';
+            endpoint = `${endpoint}/${idEdicion}`;
+        }
+
+        let response;
+
+        if (entidadActual === 'ventas') {
+            // ✅ Para ventas usamos FormData (porque hay archivo)
+            response = await fetch(`${API_URL}${endpoint}`, {
+                method: method,
+                body: formData  // NO usar JSON, ni Content-Type
+            });
+        } else {
+            // ✅ Para clientes y cotizaciones usamos JSON normal
+            response = await fetch(`${API_URL}${endpoint}`, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            cerrarModal();
+            recargarDatos();
+        } else {
+            mostrarError(result.message || 'Error al guardar');
+        }
+
+    } catch (error) {
+        console.error('❌ Error completo:', error);
+        mostrarError('Error de conexión: ' + error.message);
+    }
+
+    return false;
+}
 
         function mostrarError(mensaje) {
             const mensajeDiv = document.getElementById('modalMensaje');
