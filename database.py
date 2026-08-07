@@ -1,14 +1,14 @@
 import sqlite3
+import os
 
 def crear_bd():
+    # Si el archivo existe, lo borramos para forzar la creación desde cero
+    if os.path.exists('taller.db'):
+        os.remove('taller.db')
+        print("🗑️ Base de datos anterior eliminada")
+
     conn = sqlite3.connect('taller.db')
     cursor = conn.cursor()
-    
-    # Eliminar tablas si existen
-    cursor.execute('DROP TABLE IF EXISTS cotizaciones')
-    cursor.execute('DROP TABLE IF EXISTS ventas')
-    cursor.execute('DROP TABLE IF EXISTS clientes')
-    cursor.execute('DROP TABLE IF EXISTS usuarios')
     
     # 1. TABLA CLIENTES
     cursor.execute('''
@@ -23,7 +23,7 @@ def crear_bd():
         )
     ''')
     
-    # 2. TABLA VENTAS
+    # 2. TABLA VENTAS (CON LAS NUEVAS COLUMNAS)
     cursor.execute('''
         CREATE TABLE ventas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,6 +34,8 @@ def crear_bd():
             estado TEXT DEFAULT 'Pendiente',
             forma_pago TEXT DEFAULT 'Efectivo',
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            fecha_emision DATE,
+            boleta_sii TEXT,
             FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
         )
     ''')
@@ -69,12 +71,12 @@ def crear_bd():
     # 5. Insertar usuario admin
     cursor.execute('''
         INSERT OR IGNORE INTO usuarios (email, password, nombre, rol)
-        VALUES ('admin@nevvytech.cl', 'nevvy2026', 'Administrador', 'admin')
+        VALUES ('admin', 'nevvy2026', 'Administrador', 'admin')
     ''')
     
     conn.commit()
     conn.close()
-    print('✅ Base de datos SQLite creada exitosamente')
+    print('✅ Base de datos SQLite creada exitosamente con las nuevas columnas')
 
 if __name__ == '__main__':
     crear_bd()
