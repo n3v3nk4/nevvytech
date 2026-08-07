@@ -185,6 +185,61 @@ def guardar_venta():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/ventas/<int:id>', methods=['PUT'])
+def editar_venta(id):
+    try:
+        # Verificar si hay un archivo
+        if 'boleta' in request.files:
+            file = request.files['boleta']
+            if file.filename != '':
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                boleta_path = filename
+            else:
+                boleta_path = None
+        else:
+            boleta_path = None
+
+        # Datos del formulario
+        data = request.form
+        cliente = data.get('cliente')
+        telefono = data.get('telefono')
+        producto = data.get('producto')
+        monto = data.get('monto')
+        forma_pago = data.get('forma_pago')
+        estado = data.get('estado')
+        fecha_emision = data.get('fecha_emision')
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Obtener el cliente_id actual
+        cursor.execute('SELECT cliente_id FROM ventas WHERE id = ?', (id,))
+        venta = cursor.fetchone()
+        if not venta:
+            return jsonify({'success': False, 'message': 'Venta no encontrada'}), 404
+
+        cliente_id = venta['cliente_id']
+
+        # Actualizar cliente
+        cursor.execute('''
+            UPDATE clientes SET nombre = ?, telefono = ? WHERE id = ?
+        ''', (cliente, telefono, cliente_id))
+
+        # Actualizar venta
+        cursor.execute('''
+            UPDATE ventas 
+            SET producto = ?, monto = ?, estado = ?, forma_pago = ?, fecha_emision = ?, boleta_sii = ?
+            WHERE id = ?
+        ''', (producto, monto, estado, forma_pago, fecha_emision, boleta_path, id))
+
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Venta actualizada correctamente'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/api/clientes', methods=['GET'])
 def obtener_clientes():
     conn = get_db()
