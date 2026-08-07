@@ -306,6 +306,10 @@ def eliminar_cotizacion(id):
 def descargar_boleta(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+# ============================================
+# RUTAS PARA ELIMINAR (DELETE)
+# ============================================
+
 @app.route('/api/ventas/<int:id>', methods=['DELETE'])
 def eliminar_venta(id):
     try:
@@ -321,7 +325,6 @@ def eliminar_venta(id):
         conn.execute('DELETE FROM ventas WHERE id = ?', (id,))
         
         # Opcional: eliminar el cliente si ya no tiene ventas asociadas
-        # (si quieres mantener el cliente aunque no tenga ventas, puedes comentar estas líneas)
         ventas_restantes = conn.execute('SELECT COUNT(*) as total FROM ventas WHERE cliente_id = ?', (cliente_id,)).fetchone()
         if ventas_restantes['total'] == 0:
             conn.execute('DELETE FROM clientes WHERE id = ?', (cliente_id,))
@@ -332,7 +335,8 @@ def eliminar_venta(id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-    @app.route('/api/clientes/<int:id>', methods=['DELETE'])
+
+@app.route('/api/clientes/<int:id>', methods=['DELETE'])
 def eliminar_cliente(id):
     try:
         conn = get_db()
