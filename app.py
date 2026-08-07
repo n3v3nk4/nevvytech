@@ -96,7 +96,7 @@ def cotizador():
 
 @app.route('/admin/')
 @app.route('/admin/<path:filename>')
-def admin_panel(filename='dashboard.html'):
+def admin_panel(filename='login.html'):
     return render_template(f'admin/{filename}')
 
 # ============================================
