@@ -306,6 +306,48 @@ def eliminar_cotizacion(id):
 def descargar_boleta(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+@app.route('/api/ventas/<int:id>', methods=['DELETE'])
+def eliminar_venta(id):
+    try:
+        conn = get_db()
+        # Primero obtener el cliente_id asociado a la venta
+        venta = conn.execute('SELECT cliente_id FROM ventas WHERE id = ?', (id,)).fetchone()
+        if not venta:
+            return jsonify({'success': False, 'message': 'Venta no encontrada'}), 404
+        
+        cliente_id = venta['cliente_id']
+        
+        # Eliminar la venta
+        conn.execute('DELETE FROM ventas WHERE id = ?', (id,))
+        
+        # Opcional: eliminar el cliente si ya no tiene ventas asociadas
+        # (si quieres mantener el cliente aunque no tenga ventas, puedes comentar estas líneas)
+        ventas_restantes = conn.execute('SELECT COUNT(*) as total FROM ventas WHERE cliente_id = ?', (cliente_id,)).fetchone()
+        if ventas_restantes['total'] == 0:
+            conn.execute('DELETE FROM clientes WHERE id = ?', (cliente_id,))
+            
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Venta eliminada correctamente'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+    @app.route('/api/clientes/<int:id>', methods=['DELETE'])
+def eliminar_cliente(id):
+    try:
+        conn = get_db()
+        # Verificar si el cliente tiene ventas asociadas
+        ventas = conn.execute('SELECT COUNT(*) as total FROM ventas WHERE cliente_id = ?', (id,)).fetchone()
+        if ventas['total'] > 0:
+            return jsonify({'success': False, 'message': 'No se puede eliminar el cliente porque tiene ventas asociadas'}), 400
+        
+        conn.execute('DELETE FROM clientes WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Cliente eliminado correctamente'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 # ============================================
 # INICIO
 # ============================================
