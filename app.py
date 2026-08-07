@@ -97,8 +97,7 @@ def cotizador():
 @app.route('/admin/')
 @app.route('/admin/<path:filename>')
 def admin_panel(filename='login.html'):
-    # Esto busca los archivos directamente en la raíz, no en una carpeta
-    return render_template(filename)
+    return render_template(f'admin/{filename}') 
 
 # ============================================
 # ARCHIVOS ESTÁTICOS (CSS, JS, LOGO)
