@@ -570,87 +570,97 @@
         // VENTAS (CON BOLETA Y FECHA DE EMISIÓN)
         // ============================================
         async function cargarVentas() {
-    const container = document.getElementById('contenidoDinamico');
-    
-    try {
-        const response = await fetch(`${API_URL}/ventas`);
-        const data = await response.json();
-        const ventas = data.data || [];
-
-        container.innerHTML = `
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex gap-2">
-                    <input type="text" id="buscarVenta" placeholder="Buscar venta..." 
-                           class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
-                    <button onclick="buscarVentas()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                <button onclick="abrirModal('ventas')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Nueva Venta
-                </button>
-            </div>
+            const container = document.getElementById('contenidoDinamico');
             
-            <div class="table-container">
-                <div class="overflow-x-auto">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nº Orden</th>
-                                <th>Cliente</th>
-                                <th>Producto</th>
-                                <th>Monto</th>
-                                <th>Forma Pago</th>
-                                <th>Estado</th>
-                                <th>F. Emisión</th>
-                                <th>Boleta SII</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaVentas">
-                            ${ventas.length === 0 ? `
-                                <tr>
-                                    <td colspan="9" class="text-center text-slate-400 py-8">
-                                        No hay ventas registradas
-                                    </td>
-                                </tr>
-                            ` : ventas.map(v => `
-                                <tr>
-                                    <td class="font-mono text-sm">${v.numero_orden || 'N/A'}</td>
-                                    <td>${v.cliente_nombre || 'Sin cliente'}</td>
-                                    <td>${v.producto || 'N/A'}</td>
-                                    <td>$${Number(v.monto).toLocaleString()}</td>
-                                    <td>${v.forma_pago || 'Efectivo'}</td>
-                                    <td><span class="badge badge-${(v.estado || 'pendiente').toLowerCase()}">${v.estado || 'Pendiente'}</span></td>
-                                    <td class="text-sm text-slate-400">${v.fecha_emision ? new Date(v.fecha_emision).toLocaleDateString() : 'N/A'}</td>
-                                    <td class="text-sm text-slate-400">${v.boleta_sii || 'Sin boleta'}</td>
-                                    <td>
-                                        <button onclick="editarRegistro('ventas', ${v.id})" class="btn-action mr-1">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button onclick="eliminarRegistro('ventas', ${v.id})" class="btn-action btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
+            try {
+                const response = await fetch(`${API_URL}/ventas`);
+                const data = await response.json();
+                const ventas = data.data || [];
 
-        datosActuales = ventas;
+                container.innerHTML = `
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex gap-2">
+                            <input type="text" id="buscarVenta" placeholder="Buscar venta..." 
+                                   class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                            <button onclick="buscarVentas()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <button onclick="abrirModal('ventas')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Nueva Venta
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nº Orden</th>
+                                        <th>Cliente</th>
+                                        <th>Producto</th>
+                                        <th>Monto</th>
+                                        <th>Forma Pago</th>
+                                        <th>Estado</th>
+                                        <th>F. Emisión</th>
+                                        <th>Boleta SII</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaVentas">
+                                    ${ventas.length === 0 ? `
+                                        <tr>
+                                            <td colspan="9" class="text-center text-slate-400 py-8">
+                                                No hay ventas registradas
+                                            </td>
+                                        </tr>
+                                    ` : ventas.map(v => `
+                                        <tr>
+                                            <td class="font-mono text-sm">${v.numero_orden || 'N/A'}</td>
+                                            <td>${v.cliente_nombre || 'Sin cliente'}</td>
+                                            <td>${v.producto || 'N/A'}</td>
+                                            <td>$${Number(v.monto).toLocaleString()}</td>
+                                            <td>${v.forma_pago || 'Efectivo'}</td>
+                                            <td><span class="badge badge-${(v.estado || 'pendiente').toLowerCase()}">${v.estado || 'Pendiente'}</span></td>
+                                            <td class="text-sm text-slate-400">${v.fecha_emision ? new Date(v.fecha_emision).toLocaleDateString() : 'N/A'}</td>
+                                            <td class="text-sm text-slate-400">${v.boleta_sii || 'Sin boleta'}</td>
+                                            <td>
+                                                ${v.boleta_sii ? `<a href="/api/boletas/${v.boleta_sii}" target="_blank" class="btn-action">📄 Ver Boleta</a>` : 'Sin boleta'}
+                                                <button onclick="editarRegistro('ventas', ${v.id})" class="btn-action mr-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="eliminarRegistro('ventas', ${v.id})" class="btn-action btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
 
-    } catch (error) {
-        container.innerHTML = `
-            <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg">
-                <i class="fas fa-exclamation-triangle mr-2"></i>
-                Error al cargar ventas: ${error.message}
-            </div>
-        `;
-    }
-}
+                datosActuales = ventas;
+
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Error al cargar ventas: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function buscarVentas() {
+            const termino = document.getElementById('buscarVenta').value.toLowerCase();
+            const filas = document.querySelectorAll('#tablaVentas tr');
+            filas.forEach(fila => {
+                const texto = fila.textContent.toLowerCase();
+                fila.style.display = texto.includes(termino) ? '' : 'none';
+            });
+        }
 
         // ============================================
         // CLIENTES
@@ -886,8 +896,8 @@
                         <input type="date" id="campo_fecha_emision" class="modal-input" value="${datos?.fecha_emision || ''}">
                     </div>
                     <div class="mb-3">
-                        <label class="block text-sm text-slate-400 mb-1">Boleta SII</label>
-                        <input type="text" id="campo_boleta_sii" class="modal-input" placeholder="Número de boleta" value="${datos?.boleta_sii || ''}">
+                        <label class="block text-sm text-slate-400 mb-1">Boleta SII (PDF)</label>
+                        <input type="file" id="campo_boleta_sii" class="modal-input" accept=".pdf">
                     </div>
                     <div class="mb-3">
                         <label class="block text-sm text-slate-400 mb-1">Estado</label>
@@ -972,6 +982,7 @@
                 let endpoint = '';
                 let method = 'POST';
                 let datos = {};
+                const formData = new FormData();
 
                 if (entidadActual === 'ventas') {
                     const cliente = document.getElementById('campo_cliente').value.trim();
@@ -980,7 +991,7 @@
                     const monto = document.getElementById('campo_monto').value;
                     const forma_pago = document.getElementById('campo_forma_pago').value;
                     const fecha_emision = document.getElementById('campo_fecha_emision').value;
-                    const boleta_sii = document.getElementById('campo_boleta_sii').value.trim();
+                    const fileInput = document.getElementById('campo_boleta_sii');
                     const estado = document.getElementById('campo_estado').value;
 
                     if (!cliente || !producto || !monto) {
@@ -988,7 +999,18 @@
                         return false;
                     }
 
-                    datos = { cliente, telefono, producto, monto, forma_pago, fecha_emision, boleta_sii, estado };
+                    datos = { cliente, telefono, producto, monto, forma_pago, fecha_emision, estado };
+                    
+                    // Agregar datos al FormData
+                    for (const key in datos) {
+                        formData.append(key, datos[key]);
+                    }
+
+                    // Agregar archivo si existe
+                    if (fileInput && fileInput.files.length > 0) {
+                        formData.append('boleta', fileInput.files[0]);
+                    }
+
                     endpoint = '/ventas';
                 } else if (entidadActual === 'clientes') {
                     const nombre = document.getElementById('campo_nombre').value.trim();
@@ -1024,11 +1046,19 @@
                     endpoint = `${endpoint}/${idEdicion}`;
                 }
 
-                const response = await fetch(`${API_URL}${endpoint}`, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datos)
-                });
+                let response;
+                if (entidadActual === 'ventas') {
+                    response = await fetch(`${API_URL}${endpoint}`, {
+                        method: method,
+                        body: formData
+                    });
+                } else {
+                    response = await fetch(`${API_URL}${endpoint}`, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(datos)
+                    });
+                }
 
                 const result = await response.json();
 

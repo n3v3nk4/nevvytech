@@ -3,10 +3,16 @@ from flask_cors import CORS
 import sqlite3
 from datetime import datetime
 import os
+from werkzeug.utils import secure_filename
 
 # ✅ CONFIGURACIÓN MÁS SIMPLE: Busca los HTML en la raíz
 app = Flask(__name__, template_folder='.')
 CORS(app)
+
+# ✅ CARPETA PARA GUARDAR LAS BOLETAS PDF
+UPLOAD_FOLDER = 'boletas'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # ============================================
 # INICIALIZAR BASE DE DATOS
@@ -138,22 +144,44 @@ def obtener_ventas():
 
 @app.route('/api/ventas', methods=['POST'])
 def guardar_venta():
-    data = request.json
     try:
+        # Verificar si hay un archivo
+        if 'boleta' in request.files:
+            file = request.files['boleta']
+            if file.filename != '':
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                boleta_path = filename
+            else:
+                boleta_path = None
+        else:
+            boleta_path = None
+
+        # Datos del formulario
+        data = request.form
+        cliente = data.get('cliente')
+        telefono = data.get('telefono')
+        producto = data.get('producto')
+        monto = data.get('monto')
+        forma_pago = data.get('forma_pago')
+        estado = data.get('estado')
+        fecha_emision = data.get('fecha_emision')
+
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO clientes (nombre, telefono) VALUES (?, ?)', (data['cliente'], data.get('telefono', '')))
+        cursor.execute('INSERT INTO clientes (nombre, telefono) VALUES (?, ?)', (cliente, telefono))
         cliente_id = cursor.lastrowid
-        
+
         numero_orden = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}"
         cursor.execute('''
-            INSERT INTO ventas (numero_orden, cliente_id, producto, monto, estado, forma_pago)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (numero_orden, cliente_id, data['producto'], data['monto'], data.get('estado', 'Pendiente'), data.get('forma_pago', 'Efectivo')))
-        
+            INSERT INTO ventas (numero_orden, cliente_id, producto, monto, estado, forma_pago, fecha_emision, boleta_sii)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (numero_orden, cliente_id, producto, monto, estado, forma_pago, fecha_emision, boleta_path))
+
         conn.commit()
         conn.close()
         return jsonify({'success': True, 'message': f'Venta {numero_orden} guardada'})
+
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
@@ -218,6 +246,10 @@ def eliminar_cotizacion(id):
         return jsonify({'success': True, 'message': 'Cotización eliminada'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/boletas/<filename>')
+def descargar_boleta(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # ============================================
 # INICIO
