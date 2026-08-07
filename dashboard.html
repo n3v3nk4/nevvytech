@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- ✅ CARGAMOS EL CSS DESDE LA CARPETA STATIC DE FLASK -->
     <link rel="stylesheet" href="/static/style.css" />
-    <link rel="stylesheet" href="../admin.css" />
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #0a1628; color: #e2e8f0; }
@@ -347,7 +346,7 @@
         // CONFIGURACIÓN API
         // ============================================
         // ✅ CAMBIAMOS A RELATIVO PARA QUE FUNCIONE EN FLASK/RENDER
-        const API_URL = 'https://nevvytech-api.onrender.com/api';
+        const API_URL = '/api';
 
         // ============================================
         // VARIABLES GLOBALES
