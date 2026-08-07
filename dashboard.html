@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <!-- ✅ CARGAMOS EL CSS DESDE LA CARPETA STATIC DE FLASK -->
     <link rel="stylesheet" href="/static/style.css" />
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -281,7 +280,6 @@
                     <p class="text-slate-400 text-xs" id="userEmail">admin@nevvytech.cl</p>
                 </div>
             </div>
-            <!-- CERRAR SESIÓN ACTUALIZADO PARA FLASK -->
             <button onclick="cerrarSesion()" class="w-full mt-3 text-red-400 text-sm hover:text-red-300 transition-all flex items-center justify-center gap-2">
                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
             </button>
@@ -345,7 +343,6 @@
         // ============================================
         // CONFIGURACIÓN API
         // ============================================
-        // ✅ CAMBIAMOS A RELATIVO PARA QUE FUNCIONE EN FLASK/RENDER
         const API_URL = '/api';
 
         // ============================================
@@ -367,7 +364,6 @@
                 return;
             }
 
-            // Cargar datos del usuario
             const nombre = localStorage.getItem('nevvy_usuario') || 'Administrador';
             const email = localStorage.getItem('nevvy_user_email') || 'admin@nevvytech.cl';
             
@@ -375,7 +371,6 @@
             document.getElementById('userEmail').textContent = email;
             document.getElementById('userAvatar').textContent = nombre.charAt(0).toUpperCase();
 
-            // Fecha actual
             const ahora = new Date();
             document.getElementById('currentDate').textContent = ahora.toLocaleDateString('es-CL', {
                 weekday: 'long',
@@ -384,13 +379,9 @@
                 day: 'numeric'
             });
 
-            // Cargar dashboard por defecto
             cargarSeccion('dashboard');
         });
 
-        // ============================================
-        // FUNCIONES DE NAVEGACIÓN
-        // ============================================
         function toggleSidebar() {
             document.body.classList.toggle('sidebar-open');
         }
@@ -398,12 +389,10 @@
         function cargarSeccion(seccion) {
             seccionActual = seccion;
             
-            // Actualizar sidebar
             document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
             const link = document.querySelector(`.sidebar-link[data-section="${seccion}"]`);
             if (link) link.classList.add('active');
 
-            // Actualizar título
             const titulos = {
                 dashboard: 'Dashboard',
                 ventas: 'Ventas',
@@ -412,7 +401,6 @@
             };
             document.getElementById('sectionTitle').textContent = titulos[seccion] || seccion;
 
-            // Cargar contenido
             switch(seccion) {
                 case 'dashboard': cargarDashboard(); break;
                 case 'ventas': cargarVentas(); break;
@@ -421,7 +409,6 @@
                 default: cargarDashboard();
             }
 
-            // Cerrar sidebar en móvil
             if (window.innerWidth <= 768) {
                 document.body.classList.remove('sidebar-open');
             }
@@ -438,19 +425,13 @@
             window.location.href = '/admin/login.html';
         }
 
-        // ============================================
-        // FUNCIONES DE API
-        // ============================================
         async function apiFetch(endpoint, options = {}) {
             try {
                 const response = await fetch(`${API_URL}${endpoint}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     ...options
                 });
-                const data = await response.json();
-                return data;
+                return await response.json();
             } catch (error) {
                 console.error('Error API:', error);
                 return { success: false, message: 'Error de conexión' };
@@ -482,15 +463,12 @@
                 const totalClientes = clientes.length;
                 const totalCotizaciones = cotizaciones.length;
 
-                // Calcular monto total de ventas
                 let montoTotal = 0;
                 ventas.forEach(v => montoTotal += Number(v.monto) || 0);
 
-                // Ventas recientes (últimas 5)
                 const ventasRecientes = ventas.slice(-5).reverse();
 
                 container.innerHTML = `
-                    <!-- Stats -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         <div class="stat-card">
                             <div class="flex items-center justify-between">
@@ -538,7 +516,6 @@
                         </div>
                     </div>
 
-                    <!-- Ventas Recientes -->
                     <div class="table-container">
                         <div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
                             <h3 class="font-bold text-white">Últimas Ventas</h3>
@@ -590,99 +567,90 @@
         }
 
         // ============================================
-        // VENTAS
+        // VENTAS (CON BOLETA Y FECHA DE EMISIÓN)
         // ============================================
         async function cargarVentas() {
-            const container = document.getElementById('contenidoDinamico');
+    const container = document.getElementById('contenidoDinamico');
+    
+    try {
+        const response = await fetch(`${API_URL}/ventas`);
+        const data = await response.json();
+        const ventas = data.data || [];
+
+        container.innerHTML = `
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex gap-2">
+                    <input type="text" id="buscarVenta" placeholder="Buscar venta..." 
+                           class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                    <button onclick="buscarVentas()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button onclick="abrirModal('ventas')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Nueva Venta
+                </button>
+            </div>
             
-            try {
-                const response = await fetch(`${API_URL}/ventas`);
-                const data = await response.json();
-                const ventas = data.data || [];
+            <div class="table-container">
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nº Orden</th>
+                                <th>Cliente</th>
+                                <th>Producto</th>
+                                <th>Monto</th>
+                                <th>Forma Pago</th>
+                                <th>Estado</th>
+                                <th>F. Emisión</th>
+                                <th>Boleta SII</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaVentas">
+                            ${ventas.length === 0 ? `
+                                <tr>
+                                    <td colspan="9" class="text-center text-slate-400 py-8">
+                                        No hay ventas registradas
+                                    </td>
+                                </tr>
+                            ` : ventas.map(v => `
+                                <tr>
+                                    <td class="font-mono text-sm">${v.numero_orden || 'N/A'}</td>
+                                    <td>${v.cliente_nombre || 'Sin cliente'}</td>
+                                    <td>${v.producto || 'N/A'}</td>
+                                    <td>$${Number(v.monto).toLocaleString()}</td>
+                                    <td>${v.forma_pago || 'Efectivo'}</td>
+                                    <td><span class="badge badge-${(v.estado || 'pendiente').toLowerCase()}">${v.estado || 'Pendiente'}</span></td>
+                                    <td class="text-sm text-slate-400">${v.fecha_emision ? new Date(v.fecha_emision).toLocaleDateString() : 'N/A'}</td>
+                                    <td class="text-sm text-slate-400">${v.boleta_sii || 'Sin boleta'}</td>
+                                    <td>
+                                        <button onclick="editarRegistro('ventas', ${v.id})" class="btn-action mr-1">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button onclick="eliminarRegistro('ventas', ${v.id})" class="btn-action btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
 
-                container.innerHTML = `
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="flex gap-2">
-                            <input type="text" id="buscarVenta" placeholder="Buscar venta..." 
-                                   class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
-                            <button onclick="buscarVentas()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                        <button onclick="abrirModal('ventas')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-                            <i class="fas fa-plus"></i> Nueva Venta
-                        </button>
-                    </div>
-                    
-                    <div class="table-container">
-                        <div class="overflow-x-auto">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Nº Orden</th>
-                                        <th>Cliente</th>
-                                        <th>Producto</th>
-                                        <th>Monto</th>
-                                        <th>Forma Pago</th>
-                                        <th>Estado</th>
-                                        <th>Fecha</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablaVentas">
-                                    ${ventas.length === 0 ? `
-                                        <tr>
-                                            <td colspan="8" class="text-center text-slate-400 py-8">
-                                                No hay ventas registradas
-                                            </td>
-                                        </tr>
-                                    ` : ventas.map(v => `
-                                        <tr>
-                                            <td class="font-mono text-sm">${v.numero_orden || 'N/A'}</td>
-                                            <td>${v.cliente_nombre || 'Sin cliente'}</td>
-                                            <td>${v.producto || 'N/A'}</td>
-                                            <td>$${Number(v.monto).toLocaleString()}</td>
-                                            <td>${v.forma_pago || 'Efectivo'}</td>
-                                            <td><span class="badge badge-${(v.estado || 'pendiente').toLowerCase()}">${v.estado || 'Pendiente'}</span></td>
-                                            <td class="text-sm text-slate-400">${v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A'}</td>
-                                            <td>
-                                                <button onclick="editarRegistro('ventas', ${v.id})" class="btn-action mr-1">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button onclick="eliminarRegistro('ventas', ${v.id})" class="btn-action btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
+        datosActuales = ventas;
 
-                // Guardar datos para búsqueda
-                datosActuales = ventas;
-
-            } catch (error) {
-                container.innerHTML = `
-                    <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                        Error al cargar ventas: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        function buscarVentas() {
-            const termino = document.getElementById('buscarVenta').value.toLowerCase();
-            const filas = document.querySelectorAll('#tablaVentas tr');
-            
-            filas.forEach(fila => {
-                const texto = fila.textContent.toLowerCase();
-                fila.style.display = texto.includes(termino) ? '' : 'none';
-            });
-        }
+    } catch (error) {
+        container.innerHTML = `
+            <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                Error al cargar ventas: ${error.message}
+            </div>
+        `;
+    }
+}
 
         // ============================================
         // CLIENTES
@@ -767,7 +735,6 @@
         function buscarClientes() {
             const termino = document.getElementById('buscarCliente').value.toLowerCase();
             const filas = document.querySelectorAll('#tablaClientes tr');
-            
             filas.forEach(fila => {
                 const texto = fila.textContent.toLowerCase();
                 fila.style.display = texto.includes(termino) ? '' : 'none';
@@ -859,7 +826,6 @@
         function buscarCotizaciones() {
             const termino = document.getElementById('buscarCotizacion').value.toLowerCase();
             const filas = document.querySelectorAll('#tablaCotizaciones tr');
-            
             filas.forEach(fila => {
                 const texto = fila.textContent.toLowerCase();
                 fila.style.display = texto.includes(termino) ? '' : 'none';
@@ -886,7 +852,6 @@
 
             title.textContent = `${modoEdicion ? 'Editar' : 'Nueva'} ${nombres[entidad] || 'Registro'}`;
 
-            // Generar campos según entidad
             let html = '';
             
             if (entidad === 'ventas') {
@@ -915,6 +880,14 @@
                             <option value="Tarjeta" ${datos?.forma_pago === 'Tarjeta' ? 'selected' : ''}>Tarjeta</option>
                             <option value="Crédito" ${datos?.forma_pago === 'Crédito' ? 'selected' : ''}>Crédito</option>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm text-slate-400 mb-1">Fecha de Emisión</label>
+                        <input type="date" id="campo_fecha_emision" class="modal-input" value="${datos?.fecha_emision || ''}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm text-slate-400 mb-1">Boleta SII</label>
+                        <input type="text" id="campo_boleta_sii" class="modal-input" placeholder="Número de boleta" value="${datos?.boleta_sii || ''}">
                     </div>
                     <div class="mb-3">
                         <label class="block text-sm text-slate-400 mb-1">Estado</label>
@@ -980,9 +953,6 @@
             document.getElementById('modalMensaje').classList.add('hidden');
         }
 
-        // ============================================
-        // MODAL - CERRAR
-        // ============================================
         function cerrarModal() {
             document.getElementById('modalOverlay').classList.remove('active');
             modoEdicion = false;
@@ -1009,6 +979,8 @@
                     const producto = document.getElementById('campo_producto').value.trim();
                     const monto = document.getElementById('campo_monto').value;
                     const forma_pago = document.getElementById('campo_forma_pago').value;
+                    const fecha_emision = document.getElementById('campo_fecha_emision').value;
+                    const boleta_sii = document.getElementById('campo_boleta_sii').value.trim();
                     const estado = document.getElementById('campo_estado').value;
 
                     if (!cliente || !producto || !monto) {
@@ -1016,7 +988,7 @@
                         return false;
                     }
 
-                    datos = { cliente, telefono, producto, monto, forma_pago, estado };
+                    datos = { cliente, telefono, producto, monto, forma_pago, fecha_emision, boleta_sii, estado };
                     endpoint = '/ventas';
                 } else if (entidadActual === 'clientes') {
                     const nombre = document.getElementById('campo_nombre').value.trim();
@@ -1047,7 +1019,6 @@
                     endpoint = '/cotizaciones';
                 }
 
-                // Si es edición, cambiar método y endpoint
                 if (modoEdicion && idEdicion) {
                     method = 'PUT';
                     endpoint = `${endpoint}/${idEdicion}`;
@@ -1082,9 +1053,6 @@
             mensajeDiv.classList.remove('hidden');
         }
 
-        // ============================================
-        // EDITAR REGISTRO
-        // ============================================
         async function editarRegistro(entidad, id) {
             try {
                 const response = await fetch(`${API_URL}/${entidad}`);
@@ -1102,9 +1070,6 @@
             }
         }
 
-        // ============================================
-        // ELIMINAR REGISTRO
-        // ============================================
         async function eliminarRegistro(entidad, id) {
             if (!confirm('¿Estás seguro de eliminar este registro?')) return;
 
@@ -1125,7 +1090,6 @@
             }
         }
 
-        // Cerrar modal al hacer clic fuera
         document.getElementById('modalOverlay').addEventListener('click', function(e) {
             if (e.target === this) cerrarModal();
         });
